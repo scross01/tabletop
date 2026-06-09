@@ -1,0 +1,8 @@
+USER               PID  %CPU %MEM      VSZ    RSS   TT  STAT STARTED      TIME COMMAND
+stephen          76074  42.1  5.6 509658416 947424 s012  R+    5:16PM   3:25.56 opencode
+_windowserver      490  12.3  0.4 436685472  64336   ??  Rs    8:10AM  51:03.61 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer -daemon
+stephen           3361   8.1  0.4 437394864  70592   ??  S     8:14AM  23:17.58 /Applications/Firefox.app/Contents/MacOS/gpu-helper.app/Contents/MacOS/g Firefox GPU Helper
+stephen          47339   5.2  0.3 435325216  44000 s002  S+   12:31PM  64:59.11 llmfit
+stephen          76080   3.1  0.1 432048128  18432 s012  S+    5:16PM   0:00.12 /bin/zsh -il
+stephen          76095   0.0  0.0 431818752   8192 s012  S+    5:16PM   0:00.01 hermes-agent
+root              416   0.0  0.1 431523840  12288   ??  Ss    8:10AM   1:01.69 /usr/libexec/logd

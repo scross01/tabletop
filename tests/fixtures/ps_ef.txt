@@ -1,0 +1,8 @@
+  UID   PID  PPID   C STIME   TTY           TIME CMD
+    0     1     0   0  8:06AM ??         3:08.58 /sbin/launchd
+    0   416     1   0  8:10AM ??         1:01.69 /usr/libexec/logd
+    0   417     1   0  8:10AM ??         0:00.15 /usr/libexec/smd
+    0   418     1   0  8:10AM ??         0:02.62 /usr/libexec/UserEventAgent (System)
+    0   421     1   0  8:10AM ??         0:01.33 /usr/libexec/kextd
+    0   423     1   0  8:10AM ??         0:00.41 /usr/libexec/thermalmonitord
+  501   356     1   0  8:10AM ??         0:00.89 /usr/libexec/runningboardd

@@ -1,0 +1,11 @@
+Filesystem        Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s1s1   926Gi    12Gi   199Gi     6%    459k  2.1G    0%   /
+devfs            210Ki   210Ki     0Bi   100%     725     0  100%   /dev
+/dev/disk3s6     926Gi   4.0Gi   199Gi     2%       4  2.1G    0%   /System/Volumes/VM
+/dev/disk3s2     926Gi   8.5Gi   199Gi     5%    1.5k  2.1G    0%   /System/Volumes/Preboot
+/dev/disk3s4     926Gi   3.0Mi   199Gi     1%      73  2.1G    0%   /System/Volumes/Update
+/dev/disk1s2     500Mi   6.0Mi   482Mi     2%       1  4.9M    0%   /System/Volumes/xarts
+/dev/disk1s1     500Mi   5.7Mi   482Mi     2%      31  4.9M    0%   /System/Volumes/iSCPreboot
+/dev/disk1s3     500Mi   1.6Mi   482Mi     1%      47  4.9M    0%   /System/Volumes/Hardware
+/dev/disk3s5     926Gi   702Gi   199Gi    78%    7.1M  2.1G    0%   /System/Volumes/Data
+map auto_home      0Bi     0Bi     0Bi   100%       0     0     -   /System/Volumes/Data/home

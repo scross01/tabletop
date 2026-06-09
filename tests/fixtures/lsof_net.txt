@@ -1,0 +1,8 @@
+COMMAND     PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+ControlCe   709 stephen   10u  IPv4 0xf76a2627e9306139      0t0  TCP *:7000 (LISTEN)
+ControlCe   709 stephen   11u  IPv6 0xe2807c014595f5b1      0t0  TCP *:7000 (LISTEN)
+ControlCe   709 stephen   12u  IPv4  0x1f546d57efb8b50      0t0  TCP *:5000 (LISTEN)
+ControlCe   709 stephen   13u  IPv6 0xe3b47c014595f5b1      0t0  TCP *:5000 (LISTEN)
+Firefox    3356 stephen   97u  IPv4 0xf76a2627e9306139      0t0  TCP 192.168.50.1:54321->151.101.1.69:443 (ESTABLISHED)
+Firefox    3356 stephen  112u  IPv4 0xf76a2627e9306139      0t0  TCP 192.168.50.1:54322->151.101.65.69:443 (ESTABLISHED)
+sshd       1234 stephen    3u  IPv4 0xf76a2627e9306139      0t0  TCP *:22 (LISTEN)
