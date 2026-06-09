@@ -127,8 +127,13 @@ examples:
 
 
 def resolve_output(args: argparse.Namespace) -> str:
-    """Determine output format from flags."""
-    formats = ["csv", "tsv", "json", "markdown", "dkvp", "plain", "use_rich", "stats"]
+    """Determine output format from flags.
+
+    Note: ``--stats`` is *not* an output format — it changes which table
+    is rendered (the column-stats summary) but the rendering itself
+    still goes through whichever format the user requested.
+    """
+    formats = ["csv", "tsv", "json", "markdown", "dkvp", "plain", "use_rich"]
     chosen = [f for f in formats if getattr(args, f, False)]
     if len(chosen) > 1:
         print(f"tabletop: only one output format allowed", file=sys.stderr)
@@ -194,8 +199,6 @@ def main() -> None:
         fmt.markdown_out(table)
     elif mode == "dkvp":
         fmt.dkvp_out(table)
-    elif mode == "stats":
-        fmt.rich(table, console)
     elif mode == "use_rich":
         fmt.rich(table, console)
     else:

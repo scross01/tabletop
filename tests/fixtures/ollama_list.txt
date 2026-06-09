@@ -6,8 +6,8 @@ gemma4:12b                         4eb23ef187e2    7.6 GB    32 hours ago
 granite4.1:3b                      6fd349357287    2.1 GB    2 days ago       
 granite4.1:8b                      444af1c4b2fe    5.3 GB    2 days ago       
 gemma4:e2b                         7fbdbf8f5e45    7.2 GB    2 days ago       
-gemma4:e4b                         c6eb396dbd59    9.6 GB    2 days ago       
-llmvision/glimpse-v1:latest        3225100ecc36    5.0 GB    12 days ago      
+gemma4:e4b                         c6eb396dbd59    9.6 GB    2 days ago
+llmvision/glimpse-v1:latest        3225100ecc36    5.0 GB    12 days ago
 embeddinggemma:latest              85462619ee72    621 MB    8 months ago     
 mistral-nemo:12b                   994f3b8b7801    7.1 GB    17 months ago    
 nomic-embed-text:latest            0a109f422b47    274 MB    19 months ago    

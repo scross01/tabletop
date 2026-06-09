@@ -6,6 +6,7 @@ and trims trailing non-table lines.
 
 from __future__ import annotations
 
+import bisect
 import re
 import sys
 
@@ -272,11 +273,22 @@ def _snap_to_space(line: str, pos: int, hints: list[int] | None = None, radius: 
     If hints (content-start positions from the data row) are provided and one
     falls within ±3 of pos, use it. Otherwise snap to the nearest space.
     """
-    # If a data-row content-start hint is nearby, use the nearest one
+    # If a data-row content-start hint is nearby, use the nearest one.
+    # hints is sorted ascending (as produced by _find_content_starts), so
+    # the closest hint must be the one just below or at/above pos. Use
+    # bisect to find those two candidates in O(log H) instead of scanning
+    # the full hint list per boundary.
     if hints:
+        idx = bisect.bisect_left(hints, pos)
+        candidates = []
+        if idx > 0:
+            candidates.append(hints[idx - 1])
+        if idx < len(hints):
+            candidates.append(hints[idx])
+
         best = None
         best_dist = 4
-        for h in hints:
+        for h in candidates:
             dist = abs(h - pos)
             if dist < best_dist or (dist == best_dist and h > (best or 0)):
                 best_dist = dist
@@ -347,7 +359,13 @@ def parse(lines: list[str], has_header: bool = True) -> Table:
 
 
 def read_input(path: str | None) -> list[str]:
-    """Read lines from file or stdin."""
+    """Read lines from file or stdin.
+
+    Note: when reading from stdin, this calls ``sys.stdin.readlines()``,
+    which blocks until the upstream producer closes its write end. If
+    you pipe from an unbounded stream (e.g. ``tail -f``), wrap the call
+    in a timeout — tabletop is intended for finite inputs.
+    """
     if path:
         try:
             with open(path) as f:

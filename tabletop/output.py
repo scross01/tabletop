@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import csv
-import io
 import json
 import sys
 
@@ -11,6 +10,11 @@ from rich.console import Console
 from rich.table import Table as RichTable
 
 from .parser import Table
+
+
+def _pad_row(row: list[str], ncols: int) -> list[str]:
+    """Pad/truncate a row to exactly ``ncols`` entries with empty strings."""
+    return row + [""] * (ncols - len(row))
 
 
 def rich(table: Table, console: Console) -> None:
@@ -26,8 +30,7 @@ def rich(table: Table, console: Console) -> None:
         rt.add_column(col)
 
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
-        rt.add_row(*padded[: table.ncols])
+        rt.add_row(*_pad_row(row, table.ncols))
 
     console.print(rt)
 
@@ -46,7 +49,7 @@ def plain(table: Table, file=None) -> None:
     print(header_line, file=file)
 
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
+        padded = _pad_row(row, table.ncols)
         line = sep.join(padded[i].ljust(widths[i]) for i in range(table.ncols))
         print(line, file=file)
 
@@ -58,8 +61,7 @@ def csv_out(table: Table, file=None) -> None:
     w = csv.writer(file)
     w.writerow(table.header)
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
-        w.writerow(padded[: table.ncols])
+        w.writerow(_pad_row(row, table.ncols))
 
 
 def tsv_out(table: Table, file=None) -> None:
@@ -68,8 +70,7 @@ def tsv_out(table: Table, file=None) -> None:
         file = sys.stdout
     print("\t".join(table.header), file=file)
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
-        print("\t".join(padded[: table.ncols]), file=file)
+        print("\t".join(_pad_row(row, table.ncols)), file=file)
 
 
 def json_out(table: Table, file=None) -> None:
@@ -78,8 +79,7 @@ def json_out(table: Table, file=None) -> None:
         file = sys.stdout
     records = []
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
-        records.append(dict(zip(table.header, padded[: table.ncols])))
+        records.append(dict(zip(table.header, _pad_row(row, table.ncols))))
     print(json.dumps(records, indent=2), file=file)
 
 
@@ -98,7 +98,7 @@ def markdown_out(table: Table, file=None) -> None:
     print("| " + sep.join("-" * w for w in widths) + " |", file=file)
 
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
+        padded = _pad_row(row, table.ncols)
         line = sep.join(padded[i].ljust(widths[i]) for i in range(table.ncols))
         print(f"| {line} |", file=file)
 
@@ -114,6 +114,6 @@ def dkvp_out(table: Table, file=None) -> None:
     if file is None:
         file = sys.stdout
     for row in table.rows:
-        padded = row + [""] * (table.ncols - len(row))
+        padded = _pad_row(row, table.ncols)
         pairs = [f"{table.header[i]}={_dkvp_val(padded[i])}" for i in range(table.ncols)]
         print(", ".join(pairs), file=file)

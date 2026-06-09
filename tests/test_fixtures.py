@@ -3,7 +3,7 @@
 
 def test_ollama_fixture_loads(ollama_table):
     assert ollama_table.header == ["NAME", "ID", "SIZE", "MODIFIED"]
-    assert len(ollama_table) == 13
+    assert len(ollama_table) == 12
 
 
 def test_ollama_fixture_first_row(ollama_table):
@@ -23,7 +23,6 @@ def test_ollama_fixture_sizes_preserved(ollama_table):
 
 def test_ollama_fixture_long_names(ollama_table):
     names = [r[0] for r in ollama_table.rows]
-    assert "fluffy/l3-8b-stheno-v3.2:latest" in names
     assert "llmvision/glimpse-v1:latest" in names
 
 

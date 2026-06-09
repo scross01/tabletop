@@ -1,0 +1,4 @@
+  PID TTY           TIME CMD
+ 1234 ??         0:00.12 /usr/libexec/logd
+ 5678 ??         0:01.34 /Applications/Firefox.app/Contents/MacOS/firefox
+ 9012 s001        0:00.05 /bin/zsh -il

@@ -8,6 +8,19 @@ from typing import Any
 from .parser import Table
 
 
+# Maximum allowed length of a user-supplied regex pattern. Patterns longer
+# than this are rejected outright to bound the cost of compilation and
+# matching.
+_MAX_PATTERN_LEN = 256
+
+# Patterns matching this are almost always catastrophic-backtracking
+# traps (e.g. `(a+)+`, `(.*)+`, `(.+)*b`). We refuse to compile them.
+_NESTED_QUANTIFIER_RE = re.compile(
+    r"\([^()]*[+*?][^()]*\)[+*?]"
+    r"|\([^()]*\{[^{}]*\}[^()]*\)[+*?]"
+)
+
+
 class TabletopError(Exception):
     """Raised on invalid input or table operations."""
 
@@ -45,6 +58,31 @@ _TIME_RE = re.compile(
     r"hour|hours|hr|hrs|day|days|week|weeks|month|months|year|years)s?\s*(?:ago)?\s*$",
     re.IGNORECASE,
 )
+
+
+def _safe_compile(pattern: str) -> re.Pattern[str]:
+    """Compile a user-supplied regex, rejecting patterns that risk ReDoS.
+
+    Two guards are applied:
+    1. Length cap — long patterns are likely adversarial and increase
+       compilation cost.
+    2. Nested-quantifier check — patterns like `(a+)+` or `(.*)+b` can
+       cause catastrophic backtracking. Python's `re` engine has no
+       execution timeout, so we reject these patterns up front.
+    """
+    if len(pattern) > _MAX_PATTERN_LEN:
+        raise TabletopError(
+            f"regex pattern too long ({len(pattern)} > {_MAX_PATTERN_LEN} chars)"
+        )
+    if _NESTED_QUANTIFIER_RE.search(pattern):
+        raise TabletopError(
+            "regex pattern contains nested quantifiers (ReDoS risk); "
+            "rewrite without nested unbounded repetition"
+        )
+    try:
+        return re.compile(pattern, re.IGNORECASE)
+    except re.error as e:
+        raise TabletopError(f"invalid regex: {e}")
 
 
 def _parse_time(val: str) -> float | None:
@@ -182,13 +220,12 @@ def sort_by(table: Table, col_spec: str, reverse: bool = False) -> Table:
     col_values = [row[idx] if idx < len(row) else "" for row in table.rows]
     col_type = _detect_column_type(col_values)
 
-    t = table.copy()
-    t.rows = sorted(
-        t.rows,
+    new_rows = sorted(
+        table.rows,
         key=lambda row: _sort_key_for_type(col_type, row[idx] if idx < len(row) else ""),
         reverse=reverse,
     )
-    return t
+    return Table(table.header, new_rows)
 
 
 def filter_by(table: Table, col_spec: str, pattern: str) -> Table:
@@ -197,17 +234,13 @@ def filter_by(table: Table, col_spec: str, pattern: str) -> Table:
     if idx is None:
         raise TabletopError(f"unknown column: {col_spec}")
 
-    try:
-        compiled = re.compile(pattern, re.IGNORECASE)
-    except re.error as e:
-        raise TabletopError(f"invalid regex: {e}")
+    compiled = _safe_compile(pattern)
 
-    t = table.copy()
-    t.rows = [
-        row for row in t.rows
+    new_rows = [
+        row for row in table.rows
         if idx < len(row) and compiled.search(row[idx])
     ]
-    return t
+    return Table(table.header, new_rows)
 
 
 def select_columns(table: Table, col_specs: list[str]) -> Table:
@@ -248,16 +281,12 @@ def remove_columns(table: Table, col_specs: list[str]) -> Table:
 
 def head(table: Table, n: int) -> Table:
     """Return a new table containing only the first N rows."""
-    t = table.copy()
-    t.rows = t.rows[:n]
-    return t
+    return Table(table.header, table.rows[:n])
 
 
 def tail(table: Table, n: int) -> Table:
     """Return a new table containing only the last N rows."""
-    t = table.copy()
-    t.rows = t.rows[-n:]
-    return t
+    return Table(table.header, table.rows[-n:])
 
 
 def unique(table: Table, col_spec: str | None = None) -> Table:
@@ -267,24 +296,22 @@ def unique(table: Table, col_spec: str | None = None) -> Table:
         if idx is None:
             raise TabletopError(f"unknown column: {col_spec}")
         seen = set()
-        t = table.copy()
-        t.rows = []
+        new_rows = []
         for row in table.rows:
             key = row[idx] if idx < len(row) else ""
             if key not in seen:
                 seen.add(key)
-                t.rows.append(row)
-        return t
+                new_rows.append(row)
+        return Table(table.header, new_rows)
     else:
-        t = table.copy()
         seen = set()
-        t.rows = []
+        new_rows = []
         for row in table.rows:
             frozen = tuple(row)
             if frozen not in seen:
                 seen.add(frozen)
-                t.rows.append(row)
-        return t
+                new_rows.append(row)
+        return Table(table.header, new_rows)
 
 
 def stats(table: Table) -> Table:
