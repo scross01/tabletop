@@ -91,23 +91,52 @@ def test_podman_volume_loads(podman_volume_table):
 # ── ps aux ──
 
 def test_ps_aux_loads(ps_aux_table):
-    """Known edge case: TIME/COMMAND single-space gap causes column merging."""
+    """TIME/COMMAND single-space gap now correctly produces separate columns."""
     assert "USER" in ps_aux_table.header
+    assert "TIME" in ps_aux_table.header
+    assert "COMMAND" in ps_aux_table.header
+    assert "TIME" in ps_aux_table.header and "COMMAND" in ps_aux_table.header
+    # Verify TIME and COMMAND are distinct columns (not merged)
+    time_idx = ps_aux_table.column_index("TIME")
+    cmd_idx = ps_aux_table.column_index("COMMAND")
+    assert time_idx is not None
+    assert cmd_idx is not None
+    assert time_idx != cmd_idx
+    # Verify the first row's TIME and COMMAND values are separated
+    if ps_aux_table.rows:
+        row = ps_aux_table.rows[0]
+        assert "3:25.56" in row[time_idx]
+        assert "opencode" in row[cmd_idx]
 
 
 # ── ps ef ──
 
 def test_ps_ef_loads(ps_ef_table):
     assert "UID" in ps_ef_table.header
+    assert "CMD" in ps_ef_table.header
+    # TIME and CMD should be separate columns (not merged "TIME CMD")
+    assert "TIME" in ps_ef_table.header
+    time_idx = ps_ef_table.column_index("TIME")
+    cmd_idx = ps_ef_table.column_index("CMD")
+    assert time_idx is not None
+    assert cmd_idx is not None
+    assert time_idx != cmd_idx
     assert len(ps_ef_table) > 0
 
 
 # ── ps (standard) ──
 
 def test_ps_loads(ps_table):
-    """Known edge case: leading space in header causes merged columns."""
-    assert any("PID" in h for h in ps_table.header)
+    """Leading space / right-aligned headers now produce separate columns."""
+    assert ps_table.header == ["PID", "TTY", "TIME", "CMD"]
+    assert ps_table.ncols == 4
     assert len(ps_table) > 0
+    # Verify first row values are in correct columns
+    row = ps_table.rows[0]
+    assert row[0] == "1234"  # PID
+    assert row[1] == "??"    # TTY
+    assert row[2] == "0:00.12"  # TIME
+    assert "logd" in row[3]  # CMD
 
 
 # ── podman ps -a ──

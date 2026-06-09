@@ -9,6 +9,7 @@ from __future__ import annotations
 import bisect
 import re
 import sys
+from collections import Counter
 
 
 class Table:
@@ -139,43 +140,140 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
         header = _split(raw[0], boundaries)
     else:
         header_starts = _find_content_starts(raw[0])
-        # Find the row with the most content-starts — this tells us the
-        # true column count when the header uses single spaces between
-        # column names (e.g. "Avail Capacity iused ifree %iused").
-        data_starts = []
-        for line in raw[data_start:]:
+        data_lines = raw[data_start:]
+
+        # Find the row with the most 2+ space gap starts in data
+        data_starts: list[int] = []
+        for line in data_lines:
             starts = _find_content_starts(line)
             if len(starts) > len(data_starts):
                 data_starts = starts
-        if len(data_starts) > len(header_starts):
-            boundaries = list(header_starts)
-            for ds in data_starts:
-                if not any(abs(ds - h) <= 3 for h in boundaries):
-                    boundaries.append(ds)
-            boundaries.sort()
-            # Expand merged header column names by splitting on single
-            # spaces (e.g. "Avail Capacity iused ifree %iused").
+
+        gap_cols = len(header_starts) + 1
+
+        # Quick pre-check: only run expensive word-start clustering if
+        # any data row has more words than the header's gap columns.
+        data_word_clusters: list[int] = []
+        word_cols = gap_cols
+        for line in data_lines:
+            wc = len(line.split())
+            if wc > word_cols:
+                word_cols = wc
+            if word_cols > gap_cols:
+                data_word_clusters = _cluster_word_starts_by_rank(data_lines)
+                word_cols = len(data_word_clusters)
+                break
+
+        # Decide whether to expand the header beyond the 2+-space-gap
+        # boundaries.  Three strategies, tried in priority order:
+        #
+        # 1. Word-start clusters suggest *more* columns than header gaps,
+        #    AND the header has enough individual words to reach that
+        #    count → split multi-word header fields.
+        #
+        # 2. Data has more 2+ space gaps than the header (existing
+        #    behaviour for headers like "Avail Capacity iused ifree").
+        #
+        # 3. Fall back to header gaps only.
+        expanded_via_words = False
+        if word_cols > gap_cols:
             unmerged = _split(raw[0], header_starts)
-            ncols = len(boundaries) + 1
-            expanded = []
-            for h in unmerged:
-                parts = h.split()
-                needed = ncols - len(expanded)
-                if len(parts) > 1 and len(parts) <= needed:
-                    expanded.extend(parts)
-                else:
-                    expanded.append(h)
-            while len(expanded) < ncols:
-                expanded.append(f"col{len(expanded) + 1}")
-            header = expanded[:ncols]
-        else:
-            boundaries = header_starts
-            header = _split(raw[0], boundaries)
+            total_header_words = sum(
+                len(h.split()) for h in unmerged if h
+            )
+            if total_header_words >= word_cols:
+                _boundaries, header = _expand_header_for_data_columns(
+                    raw[0], header_starts, data_word_clusters
+                )
+                boundaries = _boundaries
+                expanded_via_words = True
+
+        if not expanded_via_words:
+            if len(data_starts) > len(header_starts):
+                boundaries = list(header_starts)
+                for ds in data_starts:
+                    if not any(abs(ds - h) <= 3 for h in boundaries):
+                        boundaries.append(ds)
+                boundaries.sort()
+                unmerged = _split(raw[0], header_starts)
+                ncols = len(boundaries) + 1
+                header = _split_header_fields(unmerged, ncols)
+            else:
+                boundaries = header_starts
+                header = _split(raw[0], boundaries)
 
     ncols = len(header)
     rows, trailing = _process_data_rows(raw[data_start:], boundaries, ncols)
 
     return header, rows, trailing
+
+
+def _split_header_fields(unmerged: list[str], target_cols: int) -> list[str]:
+    """Split multi-word header fields to reach *target_cols*.
+
+    When the total word count across all non-empty fields exactly matches
+    *target_cols*, all multi-word fields are split unconditionally
+    (handles cases like ``"PID TTY"`` → ``["PID","TTY"]``).  When it
+    exceeds, a conservative approach preserves multi-word names like
+    ``"Mounted on"``.
+
+    Leading empty fields (artifact of right-aligned first columns) are
+    stripped, and missing columns are padded with ``colN`` placeholders.
+    """
+    non_empty = [h for h in unmerged if h]
+    total_words = sum(len(h.split()) for h in non_empty)
+
+    if total_words == target_cols:
+        # Perfect match — split all multi-word fields unconditionally
+        expanded: list[str] = []
+        for h in unmerged:
+            parts = h.split()
+            if len(parts) > 1:
+                expanded.extend(parts)
+            else:
+                expanded.append(h)
+    else:
+        # Conservative — split only if there is room
+        expanded = []
+        for h in unmerged:
+            parts = h.split()
+            needed = target_cols - len(expanded)
+            if len(parts) > 1 and len(parts) <= needed:
+                expanded.extend(parts)
+            else:
+                expanded.append(h)
+
+    # Remove leading empty fields
+    while expanded and not expanded[0]:
+        expanded.pop(0)
+
+    while len(expanded) < target_cols:
+        expanded.append(f"col{len(expanded) + 1}")
+
+    return expanded[:target_cols]
+
+
+def _expand_header_for_data_columns(
+    header_line: str,
+    header_gap_starts: list[int],
+    data_word_clusters: list[int],
+) -> tuple[list[int], list[str]]:
+    """Build expanded header and boundaries when data reveals extra columns.
+
+    Uses :func:`_split_header_fields` to split multi-word header fields
+    and data word-start clusters as column boundaries for data rows.
+
+    Returns ``(boundaries, header)``.
+    """
+    unmerged = _split(header_line, header_gap_starts)
+    target_cols = len(data_word_clusters)
+    header = _split_header_fields(unmerged, target_cols)
+
+    # Use data word-start clusters as boundaries (skip the first,
+    # which is position 0 — the start of the first column, not a
+    # boundary between columns).
+    boundaries = data_word_clusters[1:] if len(data_word_clusters) > 1 else []
+    return boundaries, header
 
 
 def _boundaries_from_separator(line: str) -> list[int]:
@@ -211,6 +309,64 @@ def _find_content_starts(line: str) -> list[int]:
         else:
             i += 1
     return starts
+
+
+def _find_word_starts(line: str) -> list[int]:
+    """Find all positions where a word (non-space) starts.
+
+    This includes position 0 if the line starts with non-space,
+    and any position where a non-space character follows a space.
+    Unlike ``_find_content_starts``, this does not require 2+ space gaps.
+    """
+    if not line:
+        return []
+    starts: list[int] = []
+    if line[0] != " ":
+        starts.append(0)
+    for i in range(1, len(line)):
+        if line[i] != " " and line[i - 1] == " ":
+            starts.append(i)
+    return starts
+
+
+def _cluster_word_starts_by_rank(lines: list[str]) -> list[int]:
+    """Cluster word-start positions by rank (column index) across data rows.
+
+    Unlike position-based clustering, this pairs the *k*-th word start
+    in each row, which handles variable-width columns where absolute
+    positions shift by row.  Returns the median position for each rank.
+
+    Only rows with the most common word count are considered, avoiding
+    trailing summary lines skewing the result.
+    """
+    if not lines:
+        return []
+
+    # Collect word starts per row
+    row_starts: list[list[int]] = []
+    for line in lines:
+        if not line.strip():
+            continue
+        starts = _find_word_starts(line)
+        if starts:
+            row_starts.append(starts)
+
+    if not row_starts:
+        return []
+
+    # Use only rows with the modal word count (exclude trailing noise)
+    wc_counts = Counter(len(s) for s in row_starts)
+    modal_count = wc_counts.most_common(1)[0][0]
+    filtered = [s for s in row_starts if len(s) == modal_count]
+
+    # For each rank, collect all positions and take median
+    clusters: list[int] = []
+    for rank in range(modal_count):
+        positions = sorted(s[rank] for s in filtered if rank < len(s))
+        if positions:
+            clusters.append(positions[len(positions) // 2])
+
+    return clusters
 
 
 def _find_column_boundaries(lines: list[str]) -> list[int]:
