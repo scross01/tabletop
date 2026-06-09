@@ -92,6 +92,15 @@ def _process_data_rows(
             continue
         if _is_separator(line):
             continue
+        # Fast path: boundaries already fall on spaces — split directly
+        # without snapping, which can create duplicate positions for
+        # single-space-separated columns (e.g. ``ps -eaf``).
+        if _is_aligned(line, boundaries):
+            fields = _split(line, boundaries)
+            if len(fields) >= ncols:
+                rows.append(fields[:ncols])
+                continue
+
         hints = _find_content_starts(line)
         radius = max(10, min(80, len(line) // max(1, ncols)))
         snapped = [_snap_to_space(line, b, hints, radius=radius) for b in boundaries]
@@ -99,9 +108,6 @@ def _process_data_rows(
         if len(fields) < ncols:
             in_table = False
             trailing.append(line)
-            continue
-        if _is_aligned(line, boundaries):
-            rows.append(fields[:ncols])
             continue
         # Row isn't perfectly aligned — accept it only if the data row
         # has enough 2+ space gaps to plausibly be a table row (at least
@@ -269,10 +275,12 @@ def _expand_header_for_data_columns(
     target_cols = len(data_word_clusters)
     header = _split_header_fields(unmerged, target_cols)
 
-    # Use data word-start clusters as boundaries (skip the first,
-    # which is position 0 — the start of the first column, not a
-    # boundary between columns).
-    boundaries = data_word_clusters[1:] if len(data_word_clusters) > 1 else []
+    # Use the gap just before each word-start cluster as a boundary
+    # (skip the first cluster — it's the start of column 1, not a
+    # boundary between columns).  Subtracting 1 converts a word-start
+    # position to the space character that precedes it, which ensures
+    # ``_is_aligned`` passes and the row is accepted directly.
+    boundaries = [c - 1 for c in data_word_clusters[1:]] if len(data_word_clusters) > 1 else []
     return boundaries, header
 
 
