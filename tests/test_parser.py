@@ -147,6 +147,92 @@ def test_col_widths():
     assert widths[2] == len("5.2 GB")  # longest SIZE
 
 
+def test_split_whitespace_with_quotes():
+    from tabletop.parser import _split_whitespace_with_quotes
+
+    # Basic split
+    assert _split_whitespace_with_quotes("a b c") == ["a", "b", "c"]
+
+    # Double-quoted value with spaces
+    assert _split_whitespace_with_quotes('a "b c" d') == ["a", "b c", "d"]
+
+    # Single-quoted value with spaces
+    assert _split_whitespace_with_quotes("a 'b c' d") == ["a", "b c", "d"]
+
+    # Mixed quotes
+    assert _split_whitespace_with_quotes('a "b c" d "e f"') == ["a", "b c", "d", "e f"]
+
+    # Unmatched quote — treated as literal
+    assert _split_whitespace_with_quotes('a "b c') == ["a", "b c"]
+
+    # No quotes, just whitespace
+    assert _split_whitespace_with_quotes("  a   b   c  ") == ["a", "b", "c"]
+
+    # Empty / whitespace only
+    assert _split_whitespace_with_quotes("") == []
+    assert _split_whitespace_with_quotes("   ") == []
+
+    # Single value
+    assert _split_whitespace_with_quotes("hello") == ["hello"]
+
+
+def test_try_parse_single_space_basic():
+    from tabletop.parser import _try_parse_single_space
+
+    lines = ["a b c", "d e f", "g h i"]
+    result = _try_parse_single_space(lines)
+    assert result == [["a", "b", "c"], ["d", "e", "f"], ["g", "h", "i"]]
+
+
+def test_try_parse_single_space_with_quotes():
+    from tabletop.parser import _try_parse_single_space
+
+    lines = ["a 'b c' d", "e 'f g' h", "i 'j k' l"]
+    result = _try_parse_single_space(lines)
+    assert result is not None
+    assert result[0] == ["a", "b c", "d"]
+    assert result[1] == ["e", "f g", "h"]
+    assert result[2] == ["i", "j k", "l"]
+
+
+def test_try_parse_single_space_inconsistent():
+    """Inconsistent column counts should return None."""
+    from tabletop.parser import _try_parse_single_space
+
+    lines = ["a b c", "d e", "f g h i"]
+    result = _try_parse_single_space(lines)
+    assert result is None
+
+
+def test_try_parse_single_space_fewer_than_3_cols():
+    """Tables with < 3 columns should return None (not worth treating as table)."""
+    from tabletop.parser import _try_parse_single_space
+
+    lines = ["a b", "c d"]
+    result = _try_parse_single_space(lines)
+    assert result is None
+
+
+def test_parse_no_header_single_space():
+    """No-header input with single-space columns should fall back."""
+    lines = ["name age status", "foo 12 active", "bar 34 inactive"]
+    t = parse(lines, has_header=False)
+    assert t.header == ["col1", "col2", "col3"]
+    assert len(t) == 3
+    assert t.rows[0] == ["name", "age", "status"]
+    assert t.rows[2] == ["bar", "34", "inactive"]
+
+
+def test_parse_no_header_with_quotes():
+    """No-header input with quoted values should be handled."""
+    lines = ["alpha 'hello world' 42", "beta 'foo bar' 99"]
+    t = parse(lines, has_header=False)
+    assert len(t) == 2
+    assert t.ncols == 3
+    assert t.rows[0][1] == "hello world"
+    assert t.rows[1][1] == "foo bar"
+
+
 def test_snap_to_space_wide_table():
     """Wide columns should still snap correctly."""
     lines = [

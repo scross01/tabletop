@@ -129,6 +129,18 @@ def ps_table(ps_lines):
     return parse(ps_lines)
 
 
+# ── ls -la (no-header) ───────────────────────────────────────────
+
+@pytest.fixture
+def ls_la_lines():
+    return _load("ls_la.txt")
+
+
+@pytest.fixture
+def ls_la_table(ls_la_lines):
+    return parse(ls_la_lines, has_header=False)
+
+
 # ── podman ps -a ──────────────────────────────────────────────
 
 @pytest.fixture

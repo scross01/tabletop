@@ -141,6 +141,33 @@ def test_ps_loads(ps_table):
 
 # ── podman ps -a ──
 
+# ── ls -la (no-header) ──
+
+def test_ls_la_loads(ls_la_table):
+    """No-header parsing of ls -la should detect 9 columns."""
+    assert ls_la_table.ncols == 9
+    assert len(ls_la_table) > 0
+
+
+def test_ls_la_columns(ls_la_table):
+    """First row should correctly split permissions, links, owner, group, size, month, day, time, name."""
+    row = ls_la_table.rows[0]
+    assert row[0] == "drwxr-xr-x@"  # permissions
+    assert row[3] == "staff"        # group
+    assert row[7] == "14:31"        # time
+    assert row[8] == "."            # filename
+
+
+def test_ls_la_filenames_are_single_words(ls_la_table):
+    """Rows with unquoted spaces in filenames are dropped as inconsistent."""
+    # The fixture has 14 data rows. One has "test file.txt" (10 fields
+    # instead of 9) and is filtered out. 13 rows remain.
+    assert len(ls_la_table.rows) == 13  # 14 - 1 inconsistent row
+    # All remaining filenames should be single words
+    for row in ls_la_table.rows:
+        assert " " not in row[-1]
+
+
 def test_podman_ps_all_loads(podman_ps_all_table):
     assert "CONTAINER ID" in podman_ps_all_table.header
     assert len(podman_ps_all_table) == 1

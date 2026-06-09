@@ -1,0 +1,15 @@
+total 56
+drwxr-xr-x@ 14 stephen  staff   448 Jun  9 14:31 .
+drwxr-xr-x@ 75 stephen  staff  2400 Jun  8 14:39 ..
+drwxr-xr-x@ 15 stephen  staff   480 Jun  9 14:32 .git
+-rw-r--r--@  1 stephen  staff   109 Jun  8 14:40 .gitignore
+drwxr-xr-x   8 stephen  staff   256 Jun  9 07:53 .kilo
+drwxr-xr-x@  6 stephen  staff   192 Jun  8 15:15 .pytest_cache
+-rw-r--r--@  1 stephen  staff     5 Jun  8 14:40 .python-version
+drwxr-xr-x@  8 stephen  staff   256 Jun  8 14:40 .venv
+-rw-r--r--@  1 stephen  staff  4585 Jun  9 14:25 README.md
+-rw-r--r--@  1 stephen  staff   451 Jun  8 15:14 pyproject.toml
+drwxr-xr-x@  8 stephen  staff   256 Jun  8 18:33 tabletop
+-rw-r--r--@  1 stephen  staff     0 Jun  9 14:31 test file.txt
+drwxr-xr-x@ 10 stephen  staff   320 Jun  8 17:09 tests
+-rw-r--r--@  1 stephen  staff  6949 Jun  8 15:14 uv.lock

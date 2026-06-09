@@ -377,6 +377,73 @@ def _cluster_word_starts_by_rank(lines: list[str]) -> list[int]:
     return clusters
 
 
+def _split_whitespace_with_quotes(line: str) -> list[str]:
+    """Split a line on whitespace, treating quoted strings as single tokens.
+
+    Handles both single (``'...'``) and double (``"..."``) quotes.
+    Unmatched quotes are treated as literal characters.
+    """
+    fields: list[str] = []
+    current: list[str] = []
+    in_quote: str | None = None
+    for c in line:
+        if in_quote:
+            if c == in_quote:
+                in_quote = None
+            else:
+                current.append(c)
+        elif c in ('"', "'"):
+            if current:
+                fields.append("".join(current))
+                current = []
+            in_quote = c
+        elif c in (" ", "\t"):
+            if current:
+                fields.append("".join(current))
+                current = []
+        else:
+            current.append(c)
+    if current:
+        fields.append("".join(current))
+    return fields
+
+
+def _try_parse_single_space(lines: list[str]) -> list[list[str]] | None:
+    """Try to parse lines as whitespace-separated with quote support.
+
+    Returns parsed rows if the data appears consistently delimited by
+    single spaces (with optional quoting), or ``None`` if the data
+    doesn't fit that pattern.
+
+    Heuristic: if >80% of non-empty rows have the same field count
+    when split on whitespace (respecting quotes), and that count is
+    >= 3, we treat it as a single-space table.
+    """
+    parsed: list[list[str]] = []
+    for line in lines:
+        if not line.strip():
+            continue
+        fields = _split_whitespace_with_quotes(line.strip())
+        if fields:
+            parsed.append(fields)
+
+    if len(parsed) < 2:
+        return None
+
+    counts = Counter(len(f) for f in parsed)
+    if not counts:
+        return None
+    most_common_count, frequency = counts.most_common(1)[0]
+
+    if most_common_count < 3:
+        return None
+
+    if frequency / len(parsed) < 0.8:
+        return None
+
+    return [f for f in parsed if len(f) == most_common_count]
+
+
 def _find_column_boundaries(lines: list[str]) -> list[int]:
     """Find column split positions from data lines using 2+ space gaps.
 
@@ -517,8 +584,30 @@ def parse(lines: list[str], has_header: bool = True) -> Table:
         raw = [line.rstrip("\n\r") for line in lines if line.strip()]
         if not raw:
             return Table([], [])
+        # Strategy 1: split on 2+ spaces (works for most CLI tools)
         boundaries = _find_column_boundaries(raw)
         ncols = len(_split(raw[0], boundaries))
+
+        # Strategy 2: single-space with quote support
+        # Used when the 2+ space split either:
+        #   - produces 0-1 columns (no 2+ space gaps found)
+        #   - produces far fewer columns than a consistent whitespace split
+        #     (e.g. ``eza -l`` where right-aligned columns create unstable gaps)
+        single_space_rows: list[list[str]] | None = None
+        if ncols < 2:
+            single_space_rows = _try_parse_single_space(raw)
+        else:
+            # Also try single-space — if it gives >= 2x the columns, the
+            # 2+ space boundaries are likely cutting through fields.
+            candidate = _try_parse_single_space(raw)
+            if candidate is not None and len(candidate[0]) >= ncols * 2:
+                single_space_rows = candidate
+
+        if single_space_rows is not None:
+            ncols = len(single_space_rows[0])
+            header = [f"col{i+1}" for i in range(ncols)]
+            return Table(header, single_space_rows)
+
         header = [f"col{i+1}" for i in range(ncols)]
         rows = [_split(line, boundaries) for line in raw]
         return Table(header, rows)
