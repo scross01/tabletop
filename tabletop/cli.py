@@ -147,6 +147,10 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
+    if args.sort and args.sort_reverse:
+        print("tabletop: --sort and --sort-reverse are mutually exclusive", file=sys.stderr)
+        sys.exit(1)
+
     # Read
     lines = read_input(args.file)
     table = parse(lines, has_header=not args.no_header)

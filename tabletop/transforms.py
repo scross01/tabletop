@@ -25,9 +25,6 @@ class TabletopError(Exception):
     """Raised on invalid input or table operations."""
 
 
-
-
-
 # ── time period parsing ─────────────────────────────────────────────
 
 TIME_UNITS = {

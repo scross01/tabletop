@@ -12,7 +12,12 @@ import sys
 
 
 class Table:
-    """Parsed table with header and typed rows."""
+    """Parsed table with header and typed rows.
+
+    ``header`` and ``rows`` are treated as immutable after construction.
+    Mutating them externally will corrupt the cached ``col_widths``.
+    Use ``copy()`` to create a mutable duplicate.
+    """
 
     def __init__(self, header: list[str], rows: list[list[str]]):
         self.header = header
@@ -368,7 +373,7 @@ def read_input(path: str | None) -> list[str]:
     """
     if path:
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 return f.readlines()
         except FileNotFoundError:
             print(f"tabletop: {path}: No such file", file=sys.stderr)
