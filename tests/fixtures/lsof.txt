@@ -1,0 +1,3 @@
+COMMAND     PID    USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+syncthing   946 stephen   47u  IPv6 0x2872210b88338af1      0t0  TCP *:8384 (LISTEN)
+Python    36032 stephen    4u  IPv4 0xbbbf664c4ce01b69      0t0  TCP localhost:http-alt (LISTEN)

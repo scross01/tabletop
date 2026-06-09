@@ -74,6 +74,75 @@ def test_lsof_fixture_columns(lsof_table):
     assert "NAME" in lsof_table.header
 
 
+# ── lsof -i (2-row short) ──
+
+def test_lsof_short_header(lsof_short_table):
+    """2-row lsof should detect all 9 columns correctly."""
+    assert lsof_short_table.header == [
+        "COMMAND", "PID", "USER", "FD", "TYPE",
+        "DEVICE", "SIZE/OFF", "NODE", "NAME",
+    ]
+    assert lsof_short_table.ncols == 9
+
+
+def test_lsof_short_row_count(lsof_short_table):
+    """Both data rows should be parsed."""
+    assert len(lsof_short_table) == 2
+
+
+def test_lsof_short_first_row(lsof_short_table):
+    """Row 0: syncthing, IPv6, port 8384."""
+    row = lsof_short_table.rows[0]
+    assert row[0] == "syncthing"
+    assert row[1] == "946"
+    assert row[2] == "stephen"
+    assert row[3] == "47u"
+    assert row[4] == "IPv6"
+    assert row[5] == "0x2872210b88338af1"
+    assert row[6] == "0t0"
+    assert row[7] == "TCP"
+    assert row[8] == "*:8384 (LISTEN)"
+
+
+def test_lsof_short_second_row(lsof_short_table):
+    """Row 1: Python, IPv4, localhost:http-alt."""
+    row = lsof_short_table.rows[1]
+    assert row[0] == "Python"
+    assert row[1] == "36032"
+    assert row[2] == "stephen"
+    assert row[3] == "4u"
+    assert row[4] == "IPv4"
+    assert row[5] == "0xbbbf664c4ce01b69"
+    assert row[6] == "0t0"
+    assert row[7] == "TCP"
+    assert row[8] == "localhost:http-alt (LISTEN)"
+
+
+def test_lsof_short_sizeoff_not_empty(lsof_short_table):
+    """SIZE/OFF column should have the '0t0' value, not be empty."""
+    for row in lsof_short_table.rows:
+        assert row[6] == "0t0"
+
+
+def test_lsof_short_name_includes_listen(lsof_short_table):
+    """NAME column should include the parenthetical (LISTEN)."""
+    for row in lsof_short_table.rows:
+        assert row[8].endswith("(LISTEN)")
+
+
+def test_lsof_short_device_is_hex(lsof_short_table):
+    """DEVICE column should be a hex address."""
+    for row in lsof_short_table.rows:
+        assert row[5].startswith("0x")
+
+
+def test_lsof_short_columns_exist(lsof_short_table):
+    """All expected lsof columns should be present."""
+    expected = ["COMMAND", "PID", "USER", "FD", "TYPE", "DEVICE", "SIZE/OFF", "NODE", "NAME"]
+    for col in expected:
+        assert col in lsof_short_table.header, f"Missing column: {col}"
+
+
 # ── podman images ──
 
 def test_podman_images_loads(podman_images_table):

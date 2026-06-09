@@ -69,6 +69,20 @@ def lsof_table(lsof_lines):
     return parse(lsof_lines)
 
 
+# ── lsof -i (2-row short) ────────────────────────────────────
+
+@pytest.fixture
+def lsof_short_lines():
+    """Raw lines from `lsof -i :8384 -i :8080` (2 data rows)."""
+    return _load("lsof.txt")
+
+
+@pytest.fixture
+def lsof_short_table(lsof_short_lines):
+    """Parsed Table from the 2-row lsof fixture."""
+    return parse(lsof_short_lines)
+
+
 # ── podman images ─────────────────────────────────────────────
 
 @pytest.fixture

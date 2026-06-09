@@ -81,6 +81,8 @@ def _process_data_rows(
     lines: list[str],
     boundaries: list[int],
     ncols: int,
+    *,
+    word_expanded: bool = False,
 ) -> tuple[list[list[str]], list[str]]:
     """Process data rows, snapping boundaries and detecting trailing lines."""
     rows = []
@@ -101,7 +103,21 @@ def _process_data_rows(
                 rows.append(fields[:ncols])
                 continue
 
+        # Try per-row word-start boundaries when the header was
+        # expanded via word analysis (i.e. some columns are separated
+        # by single spaces).  Each row's own word starts naturally
+        # align with spaces, giving correct column splits.
         hints = _find_content_starts(line)
+        if word_expanded and len(hints) + 1 < ncols:
+            word_starts = _find_word_starts(line)
+            if len(word_starts) >= ncols:
+                row_boundaries = [ws - 1 for ws in word_starts[1:ncols]]
+                if _is_aligned(line, row_boundaries):
+                    fields = _split(line, row_boundaries)
+                    if len(fields) >= ncols:
+                        rows.append(fields[:ncols])
+                        continue
+
         radius = max(10, min(80, len(line) // max(1, ncols)))
         snapped = [_snap_to_space(line, b, hints, radius=radius) for b in boundaries]
         fields = _split(line, snapped)
@@ -138,6 +154,7 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
         sep_idx = 1
 
     data_start = 2 if sep_idx is not None else 1
+    expanded_via_words = False
 
     if sep_idx is not None:
         boundaries = _boundaries_from_separator(raw[sep_idx])
@@ -193,6 +210,20 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
                 )
                 boundaries = _boundaries
                 expanded_via_words = True
+            elif (
+                total_header_words == word_cols - 1
+                and len(data_word_clusters) > total_header_words
+            ):
+                # Header has one fewer word than data word clusters
+                # (e.g. lsof's trailing "(LISTEN)" adds an extra word).
+                # Use the header word count as the column target and
+                # derive boundaries from the corresponding word clusters.
+                capped = data_word_clusters[:total_header_words]
+                _boundaries, header = _expand_header_for_data_columns(
+                    raw[0], header_starts, capped
+                )
+                boundaries = _boundaries
+                expanded_via_words = True
 
         if not expanded_via_words:
             if len(data_starts) > len(header_starts):
@@ -209,7 +240,7 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
                 header = _split(raw[0], boundaries)
 
     ncols = len(header)
-    rows, trailing = _process_data_rows(raw[data_start:], boundaries, ncols)
+    rows, trailing = _process_data_rows(raw[data_start:], boundaries, ncols, word_expanded=expanded_via_words)
 
     return header, rows, trailing
 
@@ -372,7 +403,15 @@ def _cluster_word_starts_by_rank(lines: list[str]) -> list[int]:
     for rank in range(modal_count):
         positions = sorted(s[rank] for s in filtered if rank < len(s))
         if positions:
-            clusters.append(positions[len(positions) // 2])
+            mid = len(positions) // 2
+            if len(positions) % 2 == 0:
+                # True median: average the two middle values for even-length
+                # arrays.  Using the larger outright (as floor division does)
+                # biases boundaries toward rows with wider columns, which
+                # can cause snapping failures with few rows.
+                clusters.append((positions[mid - 1] + positions[mid]) // 2)
+            else:
+                clusters.append(positions[mid])
 
     return clusters
 
