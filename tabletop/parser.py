@@ -133,6 +133,11 @@ def _process_data_rows(
         too_few_hints = len(hints) < min_hints
         too_close = any(snapped[i] - snapped[i - 1] <= 2 for i in range(1, len(snapped)))
         if too_few_hints or too_close:
+            if len(hints) >= ncols - 1:
+                fields = _split(line, hints)
+                if len(fields) >= ncols:
+                    rows.append(fields[:ncols])
+                    continue
             in_table = False
             trailing.append(line)
         else:
