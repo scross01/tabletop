@@ -1,5 +1,7 @@
 # tabletop
 
+![tabletop demo](tabletop-demo.gif)
+
 Reformat, sort, filter, and reshape space-aligned CLI table output.
 
 Many CLI tools (`ollama list`, `df -h`, `netstat`, `docker ps`) output
@@ -64,30 +66,19 @@ table options:
 ```
 
 
-## Exmaple usage
-```
-$ ollama list | tabletop -f "name:gemma" -sr size -c name,size
-
-NAME                   SIZE  
-gemma4:e4b             9.6 GB
-gemma4:12b             7.6 GB
-gemma4:e2b             7.2 GB
-embeddinggemma:latest  621 MB
-```
-
 ## Quick start
 
 ```bash
 # Pipe any space-aligned table
-ollama list | tabletop
+df -h | tabletop
 
-# Sort, filter, select columns
-ollama list | tabletop -s size -f "name:gemma" -c name,size
+# Sort columns with smart unit detection
+df -h | tabletop -sr Used
 
 # Export to CSV, JSON, Markdown
-ollama list | tabletop --csv
-ollama list | tabletop --json
-ollama list | tabletop --markdown
+df -h | tabletop --csv
+df -h | tabletop --json
+df -h | tabletop --markdown
 ```
 
 You can alias tabletop with your favorite format and other settings for quick and consistent usage.
