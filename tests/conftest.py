@@ -165,3 +165,17 @@ def podman_ps_all_lines():
 @pytest.fixture
 def podman_ps_all_table(podman_ps_all_lines):
     return parse(podman_ps_all_lines)
+
+
+# ── hermes skills list (Unicode outline table) ────────────────
+
+@pytest.fixture
+def hermes_skills_lines():
+    """Raw lines from hermes skills list (Unicode outline format)."""
+    return _load("hermes_skills_list.txt")
+
+
+@pytest.fixture
+def hermes_skills_table(hermes_skills_lines):
+    """Parsed Table from hermes skills list (Unicode outline format)."""
+    return parse(hermes_skills_lines)

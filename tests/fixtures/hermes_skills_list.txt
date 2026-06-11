@@ -1,0 +1,35 @@
+                                    Installed Skills                                    
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━┳━━━━━━━━━┓
+┃ Name                               ┃ Category             ┃ Source ┃ Trust ┃ Status  ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━╇━━━━━━━╇━━━━━━━━━┩
+│ browser-automation                 │                      │ local  │ local │ enabled │
+│ linux-server-diagnostics           │                      │ local  │ local │ enabled │
+│ restic-backup                      │                      │ local  │ local │ enabled │
+│ macos-tcc-troubleshooting          │ apple                │ local  │ local │ enabled │
+│ Browser Automation with Marionette │ automation           │ local  │ local │ enabled │
+│ codebuff                           │ autonomous-ai-agents │ local  │ local │ enabled │
+│ ascii-art                          │ creative             │ local  │ local │ enabled │
+│ baoyu-content                      │ creative             │ local  │ local │ enabled │
+│ ideation                           │ creative             │ local  │ local │ enabled │
+│ kanban                             │ devops               │ local  │ local │ enabled │
+│ macos-network-diagnostics          │ devops               │ local  │ local │ enabled │
+│ router-log-check                   │ devops               │ local  │ local │ enabled │
+│ router-network-diagnostics         │ devops               │ local  │ local │ enabled │
+│ smokeping                          │ devops               │ local  │ local │ enabled │
+│ webhook-subscriptions              │ devops               │ local  │ local │ enabled │
+│ github-workflows                   │ github               │ local  │ local │ enabled │
+│ native-mcp                         │ mcp                  │ local  │ local │ enabled │
+│ apple-mlx                          │ mlops                │ local  │ local │ enabled │
+│ llama-cpp                          │ mlops                │ local  │ local │ enabled │
+│ obliteratus                        │ mlops                │ local  │ local │ enabled │
+│ cli-tabular-data                   │ productivity         │ local  │ local │ enabled │
+│ folium-maps                        │ productivity         │ local  │ local │ enabled │
+│ google-workspace                   │ productivity         │ local  │ local │ enabled │
+│ godmode                            │ red-teaming          │ local  │ local │ enabled │
+│ home-assistant                     │ smart-home           │ local  │ local │ enabled │
+│ debugging-tools                    │ software-development │ local  │ local │ enabled │
+│ dev-workflow                       │ software-development │ local  │ local │ enabled │
+│ hermes-troubleshooting             │ software-development │ local  │ local │ enabled │
+└────────────────────────────────────┴──────────────────────┴────────┴───────┴─────────┘
+0 hub-installed, 0 builtin, 28 local — 28 enabled, 0 disabled
+

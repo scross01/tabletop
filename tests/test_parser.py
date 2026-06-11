@@ -264,3 +264,146 @@ class TestReadInput:
     def test_read_directory(self):
         with pytest.raises(SystemExit):
             read_input("/tmp")
+
+
+# ── Unicode outline table tests ───────────────────────────────
+
+
+class TestOutlineDetection:
+    def test_detect_outline_table_basic(self):
+        """A basic outline table with ┏ top border and │ rows should be detected."""
+        from tabletop.parser import _detect_outline_table
+
+        lines = [
+            "┏━━━━━━┳━━━━━━┓",
+            "┃ Name ┃ Size ┃",
+            "┡━━━━━━╇━━━━━━┩",
+            "│ foo  │ 100  │",
+            "│ bar  │ 200  │",
+            "└──────┴──────┘",
+        ]
+        assert _detect_outline_table(lines) is True
+
+    def test_detect_outline_table_with_title(self):
+        """Title before the outline table should not prevent detection."""
+        from tabletop.parser import _detect_outline_table
+
+        lines = [
+            "                                    Installed Skills                                     ",
+            "┏━━━━━━┳━━━━━━┓",
+            "┃ Name ┃ Size ┃",
+            "┡━━━━━━╇━━━━━━┩",
+            "│ foo  │ 100  │",
+            "└──────┴──────┘",
+        ]
+        assert _detect_outline_table(lines) is True
+
+    def test_detect_not_outline_table(self):
+        """Regular space-aligned tables should not be detected as outline."""
+        from tabletop.parser import _detect_outline_table
+
+        lines = [
+            "NAME    SIZE    STATUS",
+            "------  ------  ------",
+            "alpha   100MB   done",
+        ]
+        assert _detect_outline_table(lines) is False
+
+    def test_detect_outline_empty(self):
+        from tabletop.parser import _detect_outline_table
+
+        assert _detect_outline_table([]) is False
+        assert _detect_outline_table([""]) is False
+
+
+class TestOutlineParsing:
+    def test_parse_outline_basic(self):
+        """Parse a simple outline table with header and data rows."""
+        lines = [
+            "┏━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓",
+            "┃ Name   ┃ Size   ┃ Status ┃",
+            "┡━━━━━━━━╇━━━━━━━━╇━━━━━━━━┩",
+            "│ alpha  │ 100MB  │ done   │",
+            "│ beta   │ 200MB  │ active │",
+            "└────────┴────────┴────────┘",
+        ]
+        t = parse(lines)
+        assert t.header == ["Name", "Size", "Status"]
+        assert len(t) == 2
+        assert t.rows[0] == ["alpha", "100MB", "done"]
+        assert t.rows[1] == ["beta", "200MB", "active"]
+
+    def test_parse_outline_with_title_and_footer(self):
+        """Title before and summary after should be ignored."""
+        lines = [
+            "                          My Table                          ",
+            "┏━━━━━━┳━━━━━━┓",
+            "┃ A    ┃ B    ┃",
+            "┡━━━━━━╇━━━━━━┩",
+            "│ 1    │ 2    │",
+            "│ 3    │ 4    │",
+            "└──────┴──────┘",
+            "Total: 10 items",
+        ]
+        t = parse(lines)
+        assert t.header == ["A", "B"]
+        assert len(t) == 2
+        assert t.rows[0] == ["1", "2"]
+        assert t.rows[1] == ["3", "4"]
+
+    def test_parse_outline_empty_fields(self):
+        """Empty fields in outline rows should be preserved."""
+        lines = [
+            "┏━━━━━━━━┳━━━━━━━━┳━━━━━━━━┓",
+            "┃ Name   ┃ Cat    ┃ Status ┃",
+            "┡━━━━━━━━╇━━━━━━━━╇━━━━━━━━┩",
+            "│ foo    │        │ on     │",
+            "│ bar    │ test   │        │",
+            "└────────┴────────┴────────┘",
+        ]
+        t = parse(lines)
+        assert t.rows[0] == ["foo", "", "on"]
+        assert t.rows[1] == ["bar", "test", ""]
+
+    def test_parse_outline_no_header_separator(self):
+        """Outline table without ┡ separator: first │ row becomes header."""
+        lines = [
+            "┏━━━━━━┳━━━━━━┓",
+            "│ Name │ Size │",
+            "│ foo  │ 100  │",
+            "│ bar  │ 200  │",
+            "└──────┴──────┘",
+        ]
+        t = parse(lines)
+        assert t.header == ["Name", "Size"]
+        assert len(t) == 2
+
+    def test_parse_outline_preserves_spaces_in_values(self):
+        """Values with internal spaces should be preserved."""
+        lines = [
+            "┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓",
+            "┃ Name                ┃ Type   ┃",
+            "┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩",
+            "│ hello world         │ test   │",
+            "│ foo bar baz         │ other  │",
+            "└────────────────────┴────────┘",
+        ]
+        t = parse(lines)
+        assert t.rows[0][0] == "hello world"
+        assert t.rows[1][0] == "foo bar baz"
+
+    def test_parse_outline_mid_separator(self):
+        """Outline table with ├─┼─┤ mid-table separator."""
+        lines = [
+            "┏━━━━━━┳━━━━━━┓",
+            "┃ A    ┃ B    ┃",
+            "┡━━━━━━╇━━━━━━┩",
+            "│ 1    │ 2    │",
+            "├──────┼──────┤",
+            "│ 3    │ 4    │",
+            "└──────┴──────┘",
+        ]
+        t = parse(lines)
+        assert len(t) == 2
+        assert t.rows[0] == ["1", "2"]
+        assert t.rows[1] == ["3", "4"]

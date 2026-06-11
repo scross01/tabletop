@@ -240,3 +240,58 @@ def test_ls_la_filenames_are_single_words(ls_la_table):
 def test_podman_ps_all_loads(podman_ps_all_table):
     assert "CONTAINER ID" in podman_ps_all_table.header
     assert len(podman_ps_all_table) == 1
+
+
+# ── hermes skills list (Unicode outline table) ──
+
+def test_hermes_skills_loads(hermes_skills_table):
+    """Unicode outline table should parse correctly."""
+    assert hermes_skills_table.header == ["Name", "Category", "Source", "Trust", "Status"]
+    assert len(hermes_skills_table) == 28
+
+
+def test_hermes_skills_first_row(hermes_skills_table):
+    """First data row should have correct values."""
+    row = hermes_skills_table.rows[0]
+    assert row[0] == "browser-automation"
+    assert row[1] == ""
+    assert row[2] == "local"
+    assert row[3] == "local"
+    assert row[4] == "enabled"
+
+
+def test_hermes_skills_last_row(hermes_skills_table):
+    """Last data row should have correct values."""
+    row = hermes_skills_table.rows[-1]
+    assert row[0] == "hermes-troubleshooting"
+    assert row[1] == "software-development"
+    assert row[2] == "local"
+    assert row[3] == "local"
+    assert row[4] == "enabled"
+
+
+def test_hermes_skills_categories(hermes_skills_table):
+    """Categories column should contain expected values."""
+    categories = [r[1] for r in hermes_skills_table.rows]
+    assert "apple" in categories
+    assert "automation" in categories
+    assert "devops" in categories
+    assert "mlops" in categories
+    assert "software-development" in categories
+
+
+def test_hermes_skills_trailing_summary_skipped(hermes_skills_table):
+    """The '0 hub-installed...' summary line should not appear in rows."""
+    for row in hermes_skills_table.rows:
+        assert not row[0].startswith("0 hub-installed")
+
+
+def test_hermes_skills_title_skipped(hermes_skills_table):
+    """The 'Installed Skills' title should not appear as a row."""
+    for row in hermes_skills_table.rows:
+        assert "Installed Skills" not in row[0]
+
+
+def test_hermes_skills_ncols(hermes_skills_table):
+    """Table should have exactly 5 columns."""
+    assert hermes_skills_table.ncols == 5
