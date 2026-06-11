@@ -13,8 +13,8 @@ from .parser import Table
 
 
 def _pad_row(row: list[str], ncols: int) -> list[str]:
-    """Pad/truncate a row to exactly ``ncols`` entries with empty strings."""
-    return row + [""] * (ncols - len(row))
+    """Pad or truncate a row to exactly ``ncols`` entries."""
+    return row[:ncols] + [""] * max(0, ncols - len(row))
 
 
 def rich(table: Table, console: Console) -> None:

@@ -145,7 +145,7 @@ def resolve_output(args: argparse.Namespace) -> str:
     formats = ["csv", "tsv", "json", "markdown", "dkvp", "plain", "use_rich"]
     chosen = [f for f in formats if getattr(args, f, False)]
     if len(chosen) > 1:
-        print(f"tabletop: only one output format allowed", file=sys.stderr)
+        print("tabletop: only one output format allowed", file=sys.stderr)
         sys.exit(1)
     if chosen:
         return chosen[0]
