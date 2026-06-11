@@ -120,7 +120,12 @@ class TestCLI:
     def test_version(self):
         r = run_tabletop("--version")
         assert r.returncode == 0
-        assert "0.1.0" in r.stdout
+        # Read version from pyproject.toml to match dynamic version
+        import tomllib
+        with open("pyproject.toml", "rb") as f:
+            data = tomllib.load(f)
+            expected_version = data["project"]["version"]
+        assert expected_version in r.stdout
 
 
 def test_head_negative_rejected():

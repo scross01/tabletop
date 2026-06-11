@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from rich.console import Console
 
@@ -13,7 +14,20 @@ from . import transforms as tf
 from .transforms import TabletopError
 
 
-VERSION = "0.1.0"
+def _get_version() -> str:
+    """Read version from pyproject.toml."""
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib
+    
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    with open(pyproject_path, "rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["version"]
+
+
+VERSION = _get_version()
 
 
 def _positive_int(val: str) -> int:
