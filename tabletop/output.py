@@ -54,14 +54,24 @@ def plain(table: Table, file=None) -> None:
         print(line, file=file)
 
 
+_CSV_DANGEROUS = frozenset("=+-@")
+
+
+def _csv_safe(v: str) -> str:
+    """Prefix values that could trigger formula injection in spreadsheets."""
+    if v and v[0] in _CSV_DANGEROUS:
+        return "'" + v
+    return v
+
+
 def csv_out(table: Table, file=None) -> None:
     """Output as CSV."""
     if file is None:
         file = sys.stdout
     w = csv.writer(file)
-    w.writerow(table.header)
+    w.writerow([_csv_safe(h) for h in table.header])
     for row in table.rows:
-        w.writerow(_pad_row(row, table.ncols))
+        w.writerow([_csv_safe(v) for v in _pad_row(row, table.ncols)])
 
 
 def tsv_out(table: Table, file=None) -> None:
