@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
+from importlib.metadata import version, PackageNotFoundError
 
 from rich.console import Console
 
@@ -15,16 +15,11 @@ from .transforms import TabletopError
 
 
 def _get_version() -> str:
-    """Read version from pyproject.toml."""
+    """Read version from installed package metadata."""
     try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib
-    
-    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    with open(pyproject_path, "rb") as f:
-        data = tomllib.load(f)
-    return data["project"]["version"]
+        return version("tabletop")
+    except PackageNotFoundError:
+        return "0.0.0"
 
 
 VERSION = _get_version()
