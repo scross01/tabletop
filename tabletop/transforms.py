@@ -52,7 +52,7 @@ TIME_UNITS = {
 
 _TIME_RE = re.compile(
     r"^\s*(\d+(?:\.\d+)?)\s+(second|seconds|sec|secs|minute|minutes|min|mins|"
-    r"hour|hours|hr|hrs|day|days|week|weeks|month|months|year|years)s?\s*(?:ago)?\s*$",
+    r"hour|hours|hr|hrs|day|days|week|weeks|month|months|year|years)\s*(?:ago)?\s*$",
     re.IGNORECASE,
 )
 
