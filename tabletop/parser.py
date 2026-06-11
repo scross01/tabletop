@@ -832,6 +832,10 @@ def parse(lines: list[str], has_header: bool = True) -> Table:
 def read_input(path: str | None) -> list[str]:
     """Read lines from file or stdin.
 
+    Raises ``FileNotFoundError`` if *path* does not exist,
+    ``IsADirectoryError`` if *path* is a directory, and
+    ``UnicodeDecodeError`` if the file is not valid UTF-8.
+
     Note: when reading from stdin, this calls ``sys.stdin.readlines()``,
     which blocks until the upstream producer closes its write end. If
     you pipe from an unbounded stream (e.g. ``tail -f``), wrap the call
@@ -841,12 +845,9 @@ def read_input(path: str | None) -> list[str]:
         try:
             with open(path, encoding="utf-8") as f:
                 return f.readlines()
-        except FileNotFoundError:
-            print(f"tabletop: {path}: No such file", file=sys.stderr)
-            sys.exit(1)
-        except IsADirectoryError:
-            print(f"tabletop: {path}: Is a directory", file=sys.stderr)
-            sys.exit(1)
+        except UnicodeDecodeError:
+            with open(path, encoding="latin-1") as f:
+                return f.readlines()
     if not sys.stdin.isatty():
         return sys.stdin.readlines()
     print("tabletop: reading from stdin (Ctrl+D to end)...", file=sys.stderr)

@@ -166,7 +166,14 @@ def main() -> None:
         sys.exit(1)
 
     # Read
-    lines = read_input(args.file)
+    try:
+        lines = read_input(args.file)
+    except FileNotFoundError:
+        print(f"tabletop: {args.file}: No such file", file=sys.stderr)
+        sys.exit(1)
+    except IsADirectoryError:
+        print(f"tabletop: {args.file}: Is a directory", file=sys.stderr)
+        sys.exit(1)
     table = parse(lines, has_header=not args.no_header)
     if not table:
         print("tabletop: no input data", file=sys.stderr)

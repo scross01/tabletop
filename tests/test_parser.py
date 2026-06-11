@@ -258,11 +258,11 @@ class TestReadInput:
             Path(path).unlink()
 
     def test_read_missing_file(self):
-        with pytest.raises(SystemExit):
+        with pytest.raises(FileNotFoundError):
             read_input("/nonexistent/path/file.txt")
 
     def test_read_directory(self):
-        with pytest.raises(SystemExit):
+        with pytest.raises(IsADirectoryError):
             read_input("/tmp")
 
 
