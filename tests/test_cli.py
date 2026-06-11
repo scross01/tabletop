@@ -169,6 +169,8 @@ class TestCLIEdgeCases:
     def test_tab_separated_input(self):
         r = run_tabletop("--csv", input_data="A\tB\tC\n1\t2\t3\n")
         assert r.returncode == 0
+        # Tab-separated input is treated as single-column (tool parses 2+ space gaps)
+        assert "A\tB\tC" in r.stdout
 
     def test_single_column(self):
         r = run_tabletop("--plain", input_data="A\n1\n2\n")

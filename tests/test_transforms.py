@@ -112,6 +112,11 @@ class TestParseTime:
         assert _parse_time("3 weeks") == 3 * 604800
         assert _parse_time("1 month") == 2592000
 
+    def test_double_plural_rejected(self):
+        assert _parse_time("8 hourss ago") is None
+        assert _parse_time("3 dayss") is None
+        assert _parse_time("1 minutess ago") is None
+
 
 # ── column type detection ───────────────────────────────────────────
 
@@ -265,6 +270,21 @@ class TestFilterBy:
         t = parse(SAMPLE.splitlines())
         with pytest.raises(TabletopError):
             filter_by(t, "NAME", "[invalid")
+
+    def test_filter_redos_nested_quantifiers(self):
+        t = parse(SAMPLE.splitlines())
+        with pytest.raises(TabletopError, match="nested quantifiers"):
+            filter_by(t, "NAME", "(a+)+")
+
+    def test_filter_redos_star_group(self):
+        t = parse(SAMPLE.splitlines())
+        with pytest.raises(TabletopError, match="nested quantifiers"):
+            filter_by(t, "NAME", "(.*)+b")
+
+    def test_filter_redos_too_long(self):
+        t = parse(SAMPLE.splitlines())
+        with pytest.raises(TabletopError, match="too long"):
+            filter_by(t, "NAME", "a" * 300)
 
 
 # ── columns ─────────────────────────────────────────────────────────
