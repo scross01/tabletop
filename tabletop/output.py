@@ -83,6 +83,11 @@ def json_out(table: Table, file=None) -> None:
     print(json.dumps(records, indent=2), file=file)
 
 
+def _md_escape(v: str) -> str:
+    """Escape pipe characters for Markdown table cells."""
+    return v.replace("|", "\\|")
+
+
 def markdown_out(table: Table, file=None) -> None:
     """Output as a Markdown table."""
     if file is None:
@@ -93,19 +98,19 @@ def markdown_out(table: Table, file=None) -> None:
     widths = table.col_widths
     sep = " | "
 
-    header_line = sep.join(h.ljust(widths[i]) for i, h in enumerate(table.header))
+    header_line = sep.join(_md_escape(h).ljust(widths[i]) for i, h in enumerate(table.header))
     print(f"| {header_line} |", file=file)
     print("| " + sep.join("-" * w for w in widths) + " |", file=file)
 
     for row in table.rows:
         padded = _pad_row(row, table.ncols)
-        line = sep.join(padded[i].ljust(widths[i]) for i in range(table.ncols))
+        line = sep.join(_md_escape(padded[i]).ljust(widths[i]) for i in range(table.ncols))
         print(f"| {line} |", file=file)
 
 
 def _dkvp_val(v: str) -> str:
-    if "," in v:
-        return '"' + v.replace('"', '\\"') + '"'
+    if "," in v or "\n" in v or "=" in v:
+        return '"' + v.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n") + '"'
     return v
 
 
