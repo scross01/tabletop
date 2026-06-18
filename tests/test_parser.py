@@ -271,7 +271,7 @@ class TestReadInput:
 class TestOutlineDetection:
     def test_detect_outline_table_basic(self):
         """A basic outline table with ┏ top border and │ rows should be detected."""
-        from tabletop.parser import _detect_outline_table
+        from tabletop.outline import _detect_outline_table
 
         lines = [
             "┏━━━━━━┳━━━━━━┓",
@@ -285,7 +285,7 @@ class TestOutlineDetection:
 
     def test_detect_outline_table_with_title(self):
         """Title before the outline table should not prevent detection."""
-        from tabletop.parser import _detect_outline_table
+        from tabletop.outline import _detect_outline_table
 
         lines = [
             "                                    Installed Skills                                     ",
@@ -299,7 +299,7 @@ class TestOutlineDetection:
 
     def test_detect_not_outline_table(self):
         """Regular space-aligned tables should not be detected as outline."""
-        from tabletop.parser import _detect_outline_table
+        from tabletop.outline import _detect_outline_table
 
         lines = [
             "NAME    SIZE    STATUS",
@@ -309,7 +309,7 @@ class TestOutlineDetection:
         assert _detect_outline_table(lines) is False
 
     def test_detect_outline_empty(self):
-        from tabletop.parser import _detect_outline_table
+        from tabletop.outline import _detect_outline_table
 
         assert _detect_outline_table([]) is False
         assert _detect_outline_table([""]) is False
