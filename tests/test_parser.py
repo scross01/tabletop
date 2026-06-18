@@ -264,6 +264,18 @@ class TestReadInput:
         with pytest.raises(IsADirectoryError):
             read_input("/tmp")
 
+    def test_read_latin1_fallback(self):
+        content = b"NAME\xe9\nvalue\n"
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(content)
+            path = f.name
+        try:
+            lines = read_input(path)
+            assert len(lines) == 2
+            assert "NAME" in lines[0]
+        finally:
+            Path(path).unlink()
+
 
 # ── Unicode outline table tests ───────────────────────────────
 

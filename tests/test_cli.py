@@ -145,6 +145,11 @@ def test_tail_negative_rejected():
     assert r.returncode != 0
 
 
+def test_conflicting_formats_rejected():
+    r = run_tabletop("--csv", "--json", input_data=SAMPLE)
+    assert r.returncode != 0
+
+
 class TestCLINoHeader:
     def test_no_header(self):
         data = "alpha  100  x\nbeta   200  y\n"
