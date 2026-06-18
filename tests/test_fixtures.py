@@ -52,8 +52,19 @@ def test_hf_cache_fixture_separator_handled(hf_cache_table):
 
 # ── df -h ──
 
+
 def test_df_fixture_loads(df_table):
-    assert df_table.header == ["Filesystem", "Size", "Used", "Avail", "Capacity", "iused", "ifree", "%iused", "Mounted on"]
+    assert df_table.header == [
+        "Filesystem",
+        "Size",
+        "Used",
+        "Avail",
+        "Capacity",
+        "iused",
+        "ifree",
+        "%iused",
+        "Mounted on",
+    ]
     assert len(df_table) > 0
 
 
@@ -63,6 +74,7 @@ def test_df_fixture_mounted_on(df_table):
 
 
 # ── lsof -i ──
+
 
 def test_lsof_fixture_loads(lsof_table):
     assert "COMMAND" in lsof_table.header
@@ -76,11 +88,19 @@ def test_lsof_fixture_columns(lsof_table):
 
 # ── lsof -i (2-row short) ──
 
+
 def test_lsof_short_header(lsof_short_table):
     """2-row lsof should detect all 9 columns correctly."""
     assert lsof_short_table.header == [
-        "COMMAND", "PID", "USER", "FD", "TYPE",
-        "DEVICE", "SIZE/OFF", "NODE", "NAME",
+        "COMMAND",
+        "PID",
+        "USER",
+        "FD",
+        "TYPE",
+        "DEVICE",
+        "SIZE/OFF",
+        "NODE",
+        "NAME",
     ]
     assert lsof_short_table.ncols == 9
 
@@ -145,6 +165,7 @@ def test_lsof_short_columns_exist(lsof_short_table):
 
 # ── podman images ──
 
+
 def test_podman_images_loads(podman_images_table):
     assert "REPOSITORY" in podman_images_table.header
     assert len(podman_images_table) > 0
@@ -152,12 +173,14 @@ def test_podman_images_loads(podman_images_table):
 
 # ── podman volume ls ──
 
+
 def test_podman_volume_loads(podman_volume_table):
     assert "VOLUME NAME" in podman_volume_table.header
     assert len(podman_volume_table) > 0
 
 
 # ── ps aux ──
+
 
 def test_ps_aux_loads(ps_aux_table):
     """TIME/COMMAND single-space gap now correctly produces separate columns."""
@@ -180,6 +203,7 @@ def test_ps_aux_loads(ps_aux_table):
 
 # ── ps ef ──
 
+
 def test_ps_ef_loads(ps_ef_table):
     assert "UID" in ps_ef_table.header
     assert "CMD" in ps_ef_table.header
@@ -195,6 +219,7 @@ def test_ps_ef_loads(ps_ef_table):
 
 # ── ps (standard) ──
 
+
 def test_ps_loads(ps_table):
     """Leading space / right-aligned headers now produce separate columns."""
     assert ps_table.header == ["PID", "TTY", "TIME", "CMD"]
@@ -203,7 +228,7 @@ def test_ps_loads(ps_table):
     # Verify first row values are in correct columns
     row = ps_table.rows[0]
     assert row[0] == "1234"  # PID
-    assert row[1] == "??"    # TTY
+    assert row[1] == "??"  # TTY
     assert row[2] == "0:00.12"  # TIME
     assert "logd" in row[3]  # CMD
 
@@ -211,6 +236,7 @@ def test_ps_loads(ps_table):
 # ── podman ps -a ──
 
 # ── ls -la (no-header) ──
+
 
 def test_ls_la_loads(ls_la_table):
     """No-header parsing of ls -la should detect 9 columns."""
@@ -222,9 +248,9 @@ def test_ls_la_columns(ls_la_table):
     """First row should correctly split permissions, links, owner, group, size, month, day, time, name."""
     row = ls_la_table.rows[0]
     assert row[0] == "drwxr-xr-x@"  # permissions
-    assert row[3] == "staff"        # group
-    assert row[7] == "14:31"        # time
-    assert row[8] == "."            # filename
+    assert row[3] == "staff"  # group
+    assert row[7] == "14:31"  # time
+    assert row[8] == "."  # filename
 
 
 def test_ls_la_filenames_are_single_words(ls_la_table):
@@ -243,6 +269,7 @@ def test_podman_ps_all_loads(podman_ps_all_table):
 
 
 # ── hermes skills list (Unicode outline table) ──
+
 
 def test_hermes_skills_loads(hermes_skills_table):
     """Unicode outline table should parse correctly."""

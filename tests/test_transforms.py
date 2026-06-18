@@ -30,6 +30,7 @@ granite4.1:3b                    6fd349357287    2.1 GB    45 hours ago
 
 # ── size parsing ────────────────────────────────────────────────────
 
+
 class TestParseSize:
     def test_bytes(self):
         assert _parse_size("100") == 100.0
@@ -68,6 +69,7 @@ class TestParseSize:
 
 
 # ── time parsing ────────────────────────────────────────────────────
+
 
 class TestParseTime:
     def test_seconds(self):
@@ -120,6 +122,7 @@ class TestParseTime:
 
 # ── column type detection ───────────────────────────────────────────
 
+
 class TestDetectColumnType:
     def test_size_column(self):
         assert _detect_column_type(["5.2 GB", "1.8 GB", "270 MB"]) == "size"
@@ -155,6 +158,7 @@ class TestDetectColumnType:
 
 
 # ── sort ────────────────────────────────────────────────────────────
+
 
 class TestSortBy:
     def test_sort_alpha_ascending(self):
@@ -234,6 +238,7 @@ class TestSortBy:
 
 # ── filter ──────────────────────────────────────────────────────────
 
+
 class TestFilterBy:
     def test_filter_exact(self):
         t = parse(SAMPLE.splitlines())
@@ -289,6 +294,7 @@ class TestFilterBy:
 
 # ── columns ─────────────────────────────────────────────────────────
 
+
 class TestSelectColumns:
     def test_select_by_name(self):
         t = parse(SAMPLE.splitlines())
@@ -322,6 +328,7 @@ class TestRemoveColumns:
 
 # ── head/tail ───────────────────────────────────────────────────────
 
+
 class TestHeadTail:
     def test_head(self):
         t = parse(SAMPLE.splitlines())
@@ -347,6 +354,7 @@ class TestHeadTail:
 
 
 # ── unique ──────────────────────────────────────────────────────────
+
 
 class TestUnique:
     def test_unique_no_duplicates(self):
@@ -380,6 +388,7 @@ class TestUnique:
 
 
 # ── stats ───────────────────────────────────────────────────────────
+
 
 class TestStats:
     def test_stats(self):

@@ -19,6 +19,7 @@ def _load(name: str) -> list[str]:
 
 # ── ollama list ──────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def ollama_lines():
     """Raw lines from `ollama list`."""
@@ -32,6 +33,7 @@ def ollama_table(ollama_lines):
 
 
 # ── hf cache list ────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def hf_cache_lines():
@@ -47,6 +49,7 @@ def hf_cache_table(hf_cache_lines):
 
 # ── df -h ─────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def df_lines():
     return _load("df_h.txt")
@@ -59,6 +62,7 @@ def df_table(df_lines):
 
 # ── lsof -i ───────────────────────────────────────────────────
 
+
 @pytest.fixture
 def lsof_lines():
     return _load("lsof_net.txt")
@@ -70,6 +74,7 @@ def lsof_table(lsof_lines):
 
 
 # ── lsof -i (2-row short) ────────────────────────────────────
+
 
 @pytest.fixture
 def lsof_short_lines():
@@ -85,6 +90,7 @@ def lsof_short_table(lsof_short_lines):
 
 # ── podman images ─────────────────────────────────────────────
 
+
 @pytest.fixture
 def podman_images_lines():
     return _load("podman_images.txt")
@@ -96,6 +102,7 @@ def podman_images_table(podman_images_lines):
 
 
 # ── podman volume ls ──────────────────────────────────────────
+
 
 @pytest.fixture
 def podman_volume_lines():
@@ -109,6 +116,7 @@ def podman_volume_table(podman_volume_lines):
 
 # ── ps aux ────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def ps_aux_lines():
     return _load("ps_aux.txt")
@@ -120,6 +128,7 @@ def ps_aux_table(ps_aux_lines):
 
 
 # ── ps ef ─────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def ps_ef_lines():
@@ -133,6 +142,7 @@ def ps_ef_table(ps_ef_lines):
 
 # ── ps (standard) ─────────────────────────────────────────────
 
+
 @pytest.fixture
 def ps_lines():
     return _load("ps.txt")
@@ -144,6 +154,7 @@ def ps_table(ps_lines):
 
 
 # ── ls -la (no-header) ───────────────────────────────────────────
+
 
 @pytest.fixture
 def ls_la_lines():
@@ -157,6 +168,7 @@ def ls_la_table(ls_la_lines):
 
 # ── podman ps -a ──────────────────────────────────────────────
 
+
 @pytest.fixture
 def podman_ps_all_lines():
     return _load("podman_ps_all.txt")
@@ -168,6 +180,7 @@ def podman_ps_all_table(podman_ps_all_lines):
 
 
 # ── hermes skills list (Unicode outline table) ────────────────
+
 
 @pytest.fixture
 def hermes_skills_lines():

@@ -70,24 +70,28 @@ examples:
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    p.add_argument(
-        "--version", action="version", version=f"tabletop {VERSION}"
-    )
+    p.add_argument("--version", action="version", version=f"tabletop {VERSION}")
 
     # Input
     p.add_argument(
-        "file", nargs="?", default=None, metavar="FILE",
+        "file",
+        nargs="?",
+        default=None,
+        metavar="FILE",
         help="Input file (default: stdin)",
     )
 
     # Output formats
     out = p.add_argument_group("output formats")
     out.add_argument(
-        "--plain", action="store_true",
+        "--plain",
+        action="store_true",
         help="space-aligned table (default when piped)",
     )
     out.add_argument(
-        "--rich", action="store_true", dest="use_rich",
+        "--rich",
+        action="store_true",
+        dest="use_rich",
         help="Rich formatted table (default in terminal)",
     )
     out.add_argument("--csv", action="store_true", help="CSV output")
@@ -99,46 +103,70 @@ examples:
     # Transforms
     tx = p.add_argument_group("transforms")
     tx.add_argument(
-        "-s", "--sort", metavar="COL",
+        "-s",
+        "--sort",
+        metavar="COL",
         help="Sort ascending by column (name or 1-based index)",
     )
     tx.add_argument(
-        "-sr", "--sort-reverse", metavar="COL",
+        "-sr",
+        "--sort-reverse",
+        metavar="COL",
         help="Sort descending by column",
     )
     tx.add_argument(
-        "-f", "--filter", metavar="COL:PAT", action="append", default=[],
+        "-f",
+        "--filter",
+        metavar="COL:PAT",
+        action="append",
+        default=[],
         help="Keep rows where column matches regex (repeatable)",
     )
     tx.add_argument(
-        "-c", "--columns", metavar="COLS",
+        "-c",
+        "--columns",
+        metavar="COLS",
         help="Show only these columns (comma-separated names or indices)",
     )
     tx.add_argument(
-        "-r", "--remove", metavar="COLS",
+        "-r",
+        "--remove",
+        metavar="COLS",
         help="Remove these columns (comma-separated names or indices)",
     )
     tx.add_argument(
-        "-H", "--head", metavar="N", type=_positive_int,
+        "-H",
+        "--head",
+        metavar="N",
+        type=_positive_int,
         help="Keep only first N rows",
     )
     tx.add_argument(
-        "-T", "--tail", metavar="N", type=_positive_int,
+        "-T",
+        "--tail",
+        metavar="N",
+        type=_positive_int,
         help="Keep only last N rows",
     )
     tx.add_argument(
-        "-u", "--unique", metavar="COL", nargs="?", const="",
+        "-u",
+        "--unique",
+        metavar="COL",
+        nargs="?",
+        const="",
         help="Deduplicate rows (optionally by column)",
     )
 
     # Table options
     tbl = p.add_argument_group("table options")
     tbl.add_argument(
-        "--no-header", action="store_true",
+        "--no-header",
+        action="store_true",
         help="Treat first row as data (generate column names)",
     )
     tbl.add_argument(
-        "--stats", action="store_true",
+        "--stats",
+        action="store_true",
         help="Show column statistics instead of data",
     )
 

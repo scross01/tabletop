@@ -108,8 +108,14 @@ class TestCLI:
 
     def test_combine(self):
         r = run_tabletop(
-            "-f", "SIZE:GB", "-sr", "SIZE", "-H", "1",
-            "--plain", input_data=SAMPLE,
+            "-f",
+            "SIZE:GB",
+            "-sr",
+            "SIZE",
+            "-H",
+            "1",
+            "--plain",
+            input_data=SAMPLE,
         )
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
@@ -122,6 +128,7 @@ class TestCLI:
         assert r.returncode == 0
         # Read version from pyproject.toml to match dynamic version
         import tomllib
+
         with open("pyproject.toml", "rb") as f:
             data = tomllib.load(f)
             expected_version = data["project"]["version"]

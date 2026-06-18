@@ -64,6 +64,7 @@ def test_json_output():
     buf = io.StringIO()
     json_out(t, file=buf)
     import json
+
     data = json.loads(buf.getvalue())
     assert len(data) == 3
     assert data[0]["NAME"] == "alpha"

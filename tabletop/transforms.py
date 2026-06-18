@@ -67,9 +67,7 @@ def _safe_compile(pattern: str) -> re.Pattern[str]:
        execution timeout, so we reject these patterns up front.
     """
     if len(pattern) > _MAX_PATTERN_LEN:
-        raise TabletopError(
-            f"regex pattern too long ({len(pattern)} > {_MAX_PATTERN_LEN} chars)"
-        )
+        raise TabletopError(f"regex pattern too long ({len(pattern)} > {_MAX_PATTERN_LEN} chars)")
     if _NESTED_QUANTIFIER_RE.search(pattern):
         raise TabletopError(
             "regex pattern contains nested quantifiers (ReDoS risk); "
@@ -110,9 +108,7 @@ UNIT_MULTIPLIERS = {
 }
 
 # Match: optional number, optional whitespace, optional unit
-_SIZE_RE = re.compile(
-    r"^\s*([0-9]*\.?[0-9]+)\s*([a-zA-Z]+)?\s*$"
-)
+_SIZE_RE = re.compile(r"^\s*([0-9]*\.?[0-9]+)\s*([a-zA-Z]+)?\s*$")
 
 
 def _parse_size(val: str) -> float | None:
@@ -207,6 +203,7 @@ def _sort_key_for_type(col_type: str, val: str) -> tuple[int, Any]:
 
 # ── transforms ──────────────────────────────────────────────────────
 
+
 def sort_by(table: Table, col_spec: str, reverse: bool = False) -> Table:
     """Sort rows by column values with type-aware ordering (numeric, size, time, text)."""
     idx = table.column_index(col_spec)
@@ -232,10 +229,7 @@ def filter_by(table: Table, col_spec: str, pattern: str) -> Table:
 
     compiled = _safe_compile(pattern)
 
-    new_rows = [
-        row for row in table.rows
-        if idx < len(row) and compiled.search(row[idx])
-    ]
+    new_rows = [row for row in table.rows if idx < len(row) and compiled.search(row[idx])]
     return Table(table.header, new_rows)
 
 
@@ -250,10 +244,7 @@ def select_columns(table: Table, col_specs: list[str]) -> Table:
         indices.append(idx)
         new_header.append(table.header[idx])
 
-    new_rows = [
-        [row[i] if i < len(row) else "" for i in indices]
-        for row in table.rows
-    ]
+    new_rows = [[row[i] if i < len(row) else "" for i in indices] for row in table.rows]
     return Table(new_header, new_rows)
 
 
@@ -268,10 +259,7 @@ def remove_columns(table: Table, col_specs: list[str]) -> Table:
 
     keep = [i for i in range(table.ncols) if i not in remove]
     new_header = [table.header[i] for i in keep]
-    new_rows = [
-        [row[i] if i < len(row) else "" for i in keep]
-        for row in table.rows
-    ]
+    new_rows = [[row[i] if i < len(row) else "" for i in keep] for row in table.rows]
     return Table(new_header, new_rows)
 
 
@@ -318,10 +306,12 @@ def stats(table: Table) -> Table:
         non_empty = [v for v in values if v.strip()]
         unique_vals = set(non_empty)
         sample = non_empty[:3] if non_empty else ["(empty)"]
-        rows.append([
-            col,
-            str(len(values)),
-            str(len(unique_vals)),
-            ", ".join(sample),
-        ])
+        rows.append(
+            [
+                col,
+                str(len(values)),
+                str(len(unique_vals)),
+                ", ".join(sample),
+            ]
+        )
     return Table(["COLUMN", "ROWS", "UNIQUE", "SAMPLES"], rows)

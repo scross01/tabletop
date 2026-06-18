@@ -85,14 +85,26 @@ _OUTLINE_HEAD_LEFT = "┡"
 _OUTLINE_HEAD_RIGHT = "┩"
 _OUTLINE_HEAD_MID = "╇"
 
-_OUTLINE_LEFT_CHARS = frozenset({
-    _OUTLINE_TOP_LEFT, _OUTLINE_BOT_LEFT, _OUTLINE_MID_LEFT,
-    _OUTLINE_HEAD_LEFT, _OUTLINE_VERT, _OUTLINE_VERT_HEADER,
-})
-_OUTLINE_RIGHT_CHARS = frozenset({
-    _OUTLINE_TOP_RIGHT, _OUTLINE_BOT_RIGHT, _OUTLINE_MID_RIGHT,
-    _OUTLINE_HEAD_RIGHT, _OUTLINE_VERT, _OUTLINE_VERT_HEADER,
-})
+_OUTLINE_LEFT_CHARS = frozenset(
+    {
+        _OUTLINE_TOP_LEFT,
+        _OUTLINE_BOT_LEFT,
+        _OUTLINE_MID_LEFT,
+        _OUTLINE_HEAD_LEFT,
+        _OUTLINE_VERT,
+        _OUTLINE_VERT_HEADER,
+    }
+)
+_OUTLINE_RIGHT_CHARS = frozenset(
+    {
+        _OUTLINE_TOP_RIGHT,
+        _OUTLINE_BOT_RIGHT,
+        _OUTLINE_MID_RIGHT,
+        _OUTLINE_HEAD_RIGHT,
+        _OUTLINE_VERT,
+        _OUTLINE_VERT_HEADER,
+    }
+)
 
 
 def _is_outline_line(line: str) -> bool:
@@ -209,7 +221,7 @@ def _parse_outline_table(lines: list[str], has_header: bool = True) -> Table:
         return Table([], [])
 
     if not header and rows:
-        header = [f"col{i+1}" for i in range(len(rows[0]))]
+        header = [f"col{i + 1}" for i in range(len(rows[0]))]
 
     ncols = len(header)
     normalized = []
@@ -371,9 +383,7 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
         expanded_via_words = False
         if word_cols > gap_cols:
             unmerged = _split(raw[0], header_starts)
-            total_header_words = sum(
-                len(h.split()) for h in unmerged if h
-            )
+            total_header_words = sum(len(h.split()) for h in unmerged if h)
             if total_header_words >= word_cols:
                 _boundaries, header = _expand_header_for_data_columns(
                     raw[0], header_starts, data_word_clusters
@@ -381,17 +391,14 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
                 boundaries = _boundaries
                 expanded_via_words = True
             elif (
-                total_header_words == word_cols - 1
-                and len(data_word_clusters) > total_header_words
+                total_header_words == word_cols - 1 and len(data_word_clusters) > total_header_words
             ):
                 # Header has one fewer word than data word clusters
                 # (e.g. lsof's trailing "(LISTEN)" adds an extra word).
                 # Use the header word count as the column target and
                 # derive boundaries from the corresponding word clusters.
                 capped = data_word_clusters[:total_header_words]
-                _boundaries, header = _expand_header_for_data_columns(
-                    raw[0], header_starts, capped
-                )
+                _boundaries, header = _expand_header_for_data_columns(raw[0], header_starts, capped)
                 boundaries = _boundaries
                 expanded_via_words = True
 
@@ -410,7 +417,9 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
                 header = _split(raw[0], boundaries)
 
     ncols = len(header)
-    rows, trailing = _process_data_rows(raw[data_start:], boundaries, ncols, word_expanded=expanded_via_words)
+    rows, trailing = _process_data_rows(
+        raw[data_start:], boundaries, ncols, word_expanded=expanded_via_words
+    )
 
     return header, rows, trailing
 
@@ -818,10 +827,10 @@ def parse(lines: list[str], has_header: bool = True) -> Table:
 
         if single_space_rows is not None:
             ncols = len(single_space_rows[0])
-            header = [f"col{i+1}" for i in range(ncols)]
+            header = [f"col{i + 1}" for i in range(ncols)]
             return Table(header, single_space_rows)
 
-        header = [f"col{i+1}" for i in range(ncols)]
+        header = [f"col{i + 1}" for i in range(ncols)]
         rows = [_split(line, boundaries) for line in raw]
         return Table(header, rows)
 
