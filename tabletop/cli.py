@@ -21,10 +21,7 @@ def _get_version() -> str:
         return version("tabletop")
     except PackageNotFoundError:
         pass
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib
+    import tomllib
     pyproject = Path(__file__).resolve().parent.parent / "pyproject.toml"
     if pyproject.is_file():
         with open(pyproject, "rb") as f:
