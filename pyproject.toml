@@ -21,4 +21,25 @@ packages = ["tabletop"]
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "ruff>=0.15.17",
 ]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (catches unused imports, undefined names)
+    "I",   # isort (import ordering)
+    "N",   # naming conventions
+    "W",   # pycodestyle warnings
+    "UP",  # pyupgrade (modernize for target version)
+]
+ignore = [
+    "E501",  # line-too-long — handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["N802", "N803", "N806"]  # allow test function names like test_parse_basic
