@@ -121,7 +121,7 @@ def _detect_outline_table(lines: list[str], has_header: bool = True) -> bool:
             continue
         if stripped[0] == _OUTLINE_TOP_LEFT:
             # Confirm there's at least one │ data row
-            return any(_is_outline_line(l) for l in lines)
+            return any(_is_outline_line(line) for line in lines)
     return False
 
 

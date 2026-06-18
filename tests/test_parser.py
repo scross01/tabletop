@@ -5,8 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tabletop.parser import parse, read_input, Table
-
+from tabletop.parser import parse, read_input
 
 SAMPLE = """\
 NAME                             ID              SIZE      MODIFIED

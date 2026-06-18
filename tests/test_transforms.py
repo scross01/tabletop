@@ -1,22 +1,22 @@
 """Tests for tabletop transforms."""
 
 import pytest
+
 from tabletop.parser import parse
 from tabletop.transforms import (
-    sort_by,
-    filter_by,
-    select_columns,
-    remove_columns,
-    head,
-    tail,
-    unique,
-    stats,
+    TabletopError,
+    _detect_column_type,
     _parse_size,
     _parse_time,
-    _detect_column_type,
-    TabletopError,
+    filter_by,
+    head,
+    remove_columns,
+    select_columns,
+    sort_by,
+    stats,
+    tail,
+    unique,
 )
-
 
 SAMPLE = """\
 NAME                             ID              SIZE      MODIFIED

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import argparse
 import sys
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
 from rich.console import Console
 
 from . import output as fmt
-from .parser import Table, parse, read_input
 from . import transforms as tf
+from .parser import parse, read_input
 from .transforms import TabletopError
 
 

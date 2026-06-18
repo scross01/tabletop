@@ -1,9 +1,9 @@
 """Tests for tabletop output formatters."""
 
 import io
-from tabletop.parser import parse
-from tabletop.output import plain, csv_out, tsv_out, json_out, markdown_out, dkvp_out
 
+from tabletop.output import csv_out, dkvp_out, json_out, markdown_out, plain, tsv_out
+from tabletop.parser import parse
 
 SAMPLE = """\
 NAME    SIZE    MODIFIED
@@ -35,7 +35,7 @@ def test_plain_alignment():
     out = buf.getvalue()
     lines = out.strip().split("\n")
     # All lines should be same length (padded)
-    lengths = [len(l) for l in lines]
+    lengths = [len(line) for line in lines]
     assert len(set(lengths)) == 1
 
 

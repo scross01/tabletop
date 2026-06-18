@@ -7,7 +7,6 @@ from typing import Any
 
 from .parser import Table
 
-
 # Maximum allowed length of a user-supplied regex pattern. Patterns longer
 # than this are rejected outright to bound the cost of compilation and
 # matching.

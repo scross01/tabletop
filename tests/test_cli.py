@@ -35,8 +35,8 @@ class TestCLI:
         r = run_tabletop("-s", "2", "--plain", input_data=SAMPLE)
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
-        data_lines = [l for l in lines[1:]]  # skip header
-        sizes = [l.split("  ")[1].strip() for l in data_lines if l.strip()]
+        data_lines = [line for line in lines[1:]]  # skip header
+        sizes = [line.split("  ")[1].strip() for line in data_lines if line.strip()]
         # 50 MB < 100 MB < 1.0 GB < 2.5 GB
         assert sizes[0] == "50 MB"
         assert sizes[-1] == "2.5 GB"
@@ -45,8 +45,8 @@ class TestCLI:
         r = run_tabletop("-sr", "SIZE", "--plain", input_data=SAMPLE)
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
-        data_lines = [l for l in lines[1:] if l.strip()]
-        sizes = [l.split("  ")[1].strip() for l in data_lines]
+        data_lines = [line for line in lines[1:] if line.strip()]
+        sizes = [line.split("  ")[1].strip() for line in data_lines]
         assert sizes[0] == "2.5 GB"
         assert sizes[-1] == "50 MB"
 
@@ -81,14 +81,14 @@ class TestCLI:
         r = run_tabletop("-H", "2", "--plain", input_data=SAMPLE)
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
-        data_lines = [l for l in lines[1:] if l.strip()]
+        data_lines = [line for line in lines[1:] if line.strip()]
         assert len(data_lines) == 2
 
     def test_tail(self):
         r = run_tabletop("-T", "2", "--plain", input_data=SAMPLE)
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
-        data_lines = [l for l in lines[1:] if l.strip()]
+        data_lines = [line for line in lines[1:] if line.strip()]
         assert len(data_lines) == 2
 
     def test_csv(self):
@@ -113,7 +113,7 @@ class TestCLI:
         )
         assert r.returncode == 0
         lines = r.stdout.strip().split("\n")
-        data_lines = [l for l in lines[1:] if l.strip()]
+        data_lines = [line for line in lines[1:] if line.strip()]
         assert len(data_lines) == 1
         assert "2.5 GB" in data_lines[0]
 
