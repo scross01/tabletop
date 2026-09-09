@@ -277,6 +277,98 @@ class TestReadInput:
             Path(path).unlink()
 
 
+# ── Tab-separated input tests ─────────────────────────────
+
+
+class TestTabSeparation:
+    def test_is_tab_separated_basic(self):
+        from tabletop.parser import _is_tab_separated
+
+        assert _is_tab_separated(["a\tb\tc", "d\te\tf", "g\th\ti"]) is True
+
+    def test_is_tab_separated_needs_multiple_tabs(self):
+        from tabletop.parser import _is_tab_separated
+
+        # Single tab per line is too often key/value text
+        assert _is_tab_separated(["a\tb", "c\td", "e\tf"]) is False
+
+    def test_is_tab_separated_needs_consistent_counts(self):
+        from tabletop.parser import _is_tab_separated
+
+        assert _is_tab_separated(["a\tb\tc", "d\te\tf\tg"]) is False
+
+    def test_is_tab_separated_skips_blank_lines(self):
+        from tabletop.parser import _is_tab_separated
+
+        assert _is_tab_separated(["a\tb\tc", "", "d\te\tf"]) is True
+
+    def test_is_tab_separated_single_line(self):
+        from tabletop.parser import _is_tab_separated
+
+        assert _is_tab_separated(["a\tb\tc"]) is False
+
+    def test_parse_tab_separated_with_header(self):
+        lines = [
+            "Name\tApp ID\tVersion",
+            "Extension Manager\tcom.example.App\t1.0",
+            "Mesa\torg.example.GL\t26.1",
+        ]
+        t = parse(lines)
+        assert t.header == ["Name", "App ID", "Version"]
+        assert t.rows[0] == ["Extension Manager", "com.example.App", "1.0"]
+        assert len(t) == 2
+
+    def test_parse_tab_separated_no_header(self):
+        lines = [
+            "Extension Manager\tcom.example.App\t1.0\tstable\tsystem",
+            "Mesa\torg.example.GL\t26.1\t25.08\tsystem",
+        ]
+        t = parse(lines, has_header=False)
+        assert t.header == ["col1", "col2", "col3", "col4", "col5"]
+        assert t.rows[0][0] == "Extension Manager"
+        assert t.rows[1][0] == "Mesa"
+
+    def test_parse_tab_separated_empty_cells(self):
+        """Empty cells (flatpak runtimes without a Version) must be preserved."""
+        lines = [
+            "Name\tApp ID\tVersion",
+            "GNOME Platform\torg.gnome.Platform\t",
+            "KeePassXC\torg.keepassxc.KeePassXC\t2.7.12",
+        ]
+        t = parse(lines)
+        assert t.rows[0] == ["GNOME Platform", "org.gnome.Platform", ""]
+        assert t.rows[1][2] == "2.7.12"
+
+    def test_parse_tab_separated_ragged_rows(self):
+        """Ragged tab rows are truncated or padded to the header width.
+
+        Called directly: inconsistent tab counts intentionally fail
+        _is_tab_separated detection, but _parse_tab_separated tolerates
+        them (e.g. a header emitted with fewer columns).
+        """
+        from tabletop.parser import _parse_tab_separated
+
+        lines = [
+            "A\tB\tC",
+            "one\ttwo\tthree\tfour",
+            "just-one",
+        ]
+        t = _parse_tab_separated(lines)
+        assert t.rows[0] == ["one", "two", "three"]
+        assert t.rows[1] == ["just-one", "", ""]
+
+    def test_parse_tab_separated_beats_space_heuristics(self):
+        """Spaces inside cells must survive; no phantom splits."""
+        lines = [
+            "GNOME Application Platform version 50\torg.gnome.Platform\t50\tsystem",
+            "KDE Application Platform\torg.kde.Platform\t5.15-25.08\tsystem",
+        ]
+        t = parse(lines, has_header=False)
+        assert t.ncols == 4
+        assert t.rows[0][0] == "GNOME Application Platform version 50"
+        assert t.rows[1][0] == "KDE Application Platform"
+
+
 # ── Unicode outline table tests ───────────────────────────────
 
 

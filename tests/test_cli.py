@@ -179,10 +179,17 @@ class TestCLIDkvp:
 
 class TestCLIEdgeCases:
     def test_tab_separated_input(self):
-        r = run_tabletop("--csv", input_data="A\tB\tC\n1\t2\t3\n")
+        r = run_tabletop("--csv", input_data="A\tB\tC\n1\t2\t3\n4\t5\t6\n")
         assert r.returncode == 0
-        # Tab-separated input is treated as single-column (tool parses 2+ space gaps)
-        assert "A\tB\tC" in r.stdout
+        # Tab-separated input is parsed column-wise (e.g. `flatpak list` piped)
+        assert "A,B,C" in r.stdout
+        assert "1,2,3" in r.stdout
+
+    def test_tab_separated_no_header(self):
+        r = run_tabletop("--no-header", "--csv", input_data="alpha one\t2\t3\nbeta two\t5\t6\n")
+        assert r.returncode == 0
+        assert "col1,col2,col3" in r.stdout
+        assert "alpha one,2,3" in r.stdout
 
     def test_single_column(self):
         r = run_tabletop("--plain", input_data="A\n1\n2\n")

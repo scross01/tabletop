@@ -1,5 +1,7 @@
 """Smoke tests: verify real-world fixtures parse correctly."""
 
+from tabletop.parser import parse
+
 
 def test_ollama_fixture_loads(ollama_table):
     assert ollama_table.header == ["NAME", "ID", "SIZE", "MODIFIED"]
@@ -266,6 +268,73 @@ def test_ls_la_filenames_are_single_words(ls_la_table):
 def test_podman_ps_all_loads(podman_ps_all_table):
     assert "CONTAINER ID" in podman_ps_all_table.header
     assert len(podman_ps_all_table) == 1
+
+
+# ── flatpak list ──
+
+
+def test_flatpak_loads(flatpak_table):
+    """Multi-word header fields must stay unsplit (no phantom columns)."""
+    assert flatpak_table.header == ["Name", "Application ID", "Version", "Branch", "Installation"]
+    assert flatpak_table.ncols == 5
+    assert len(flatpak_table) == 11
+
+
+def test_flatpak_multi_word_cells(flatpak_table):
+    """Data cells with single spaces must stay in one column."""
+    names = [r[0] for r in flatpak_table.rows]
+    assert "Extension Manager" in names
+    assert "GNOME Application Platform version 50" in names
+    assert "Mesa (Extra)" in names
+
+
+def test_flatpak_empty_version_cells(flatpak_table):
+    """Rows without a Version must pad that column, not shift the rest."""
+    by_name = {r[0]: r for r in flatpak_table.rows}
+    assert by_name["Codecs Extra Extension"][2] == ""
+    assert by_name["Codecs Extra Extension"][3] == "25.08-extra"
+    assert by_name["KeePassXC"][2] == "2.7.12"
+
+
+def test_flatpak_last_column(flatpak_table):
+    """Installation column should hold 'system' for every row."""
+    for row in flatpak_table.rows:
+        assert row[-1] == "system"
+
+
+def test_flatpak_piped_no_header_loads(flatpak_piped_lines):
+    """`flatpak list` piped to a non-TTY is tab-separated with no header row.
+
+    flatpak suppresses its header when stdout is not a terminal and
+    switches to tab separation, so the first line is data.  The parser
+    detects the tabs, so this parses identically with or without
+    --no-header.
+    """
+    t_default = parse(flatpak_piped_lines)
+    t_no_header = parse(flatpak_piped_lines, has_header=False)
+    assert t_no_header.ncols == 5
+    assert len(t_no_header) == 11
+    # Without --no-header the tab path still parses columns correctly,
+    # but the first data row is consumed as the header.
+    assert t_default.ncols == 5
+    assert len(t_default) == 10
+
+
+def test_flatpak_piped_no_header_rows(flatpak_piped_lines):
+    """Every line should land in the right column, including the first."""
+    t = parse(flatpak_piped_lines, has_header=False)
+    assert t.rows[0] == [
+        "Extension Manager",
+        "com.mattjakeman.ExtensionManager",
+        "0.6.5",
+        "stable",
+        "system",
+    ]
+    by_name = {r[0]: r for r in t.rows}
+    assert by_name["Codecs Extra Extension"][2] == ""
+    assert by_name["KeePassXC"][2] == "2.7.12"
+    for row in t.rows:
+        assert row[-1] == "system"
 
 
 # ── hermes skills list (Unicode outline table) ──

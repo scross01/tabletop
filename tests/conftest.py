@@ -179,6 +179,27 @@ def podman_ps_all_table(podman_ps_all_lines):
     return parse(podman_ps_all_lines)
 
 
+# ── flatpak list ──────────────────────────────────────────────
+
+
+@pytest.fixture
+def flatpak_lines():
+    """Raw lines from `flatpak list` (multi-word header and data cells)."""
+    return _load("flatpak_list.txt")
+
+
+@pytest.fixture
+def flatpak_table(flatpak_lines):
+    """Parsed Table from `flatpak list`."""
+    return parse(flatpak_lines)
+
+
+@pytest.fixture
+def flatpak_piped_lines():
+    """Raw lines from `flatpak list` piped to a non-TTY (header suppressed)."""
+    return _load("flatpak_list_piped.txt")
+
+
 # ── hermes skills list (Unicode outline table) ────────────────
 
 

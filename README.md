@@ -66,6 +66,22 @@ table options:
 ```
 
 
+## Tools that hide their header when piped
+
+Some tools print a column header only when stdout is a terminal.
+`flatpak list` goes further: when piped it switches to tab-separated
+columns with no header row at all. tabletop detects the tabs
+automatically, so no flags are needed:
+
+```bash
+flatpak list | tabletop
+flatpak list | tabletop -c 1,4        # Name and Branch
+```
+
+If a tool emits headerless *space-aligned* data instead, pass
+`--no-header` so every line is treated as data with generated column
+names.
+
 ## Quick start
 
 ```bash

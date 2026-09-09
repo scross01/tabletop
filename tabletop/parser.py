@@ -186,18 +186,26 @@ def _parse_table_lines(lines: list[str]) -> tuple[list[str], list[list[str]], li
 
         gap_cols = len(header_starts) + 1
 
+        # When data rows' content starts sit on the header's gap starts
+        # (e.g. ``flatpak list``), the gaps already describe the columns.
+        # Word-cluster expansion must then be skipped: rows can contain
+        # multi-word cells, and splitting on word starts would tear them
+        # into phantom columns.
+        gap_aligned = _rows_align_with_header_gaps(data_lines, header_starts)
+
         # Quick pre-check: only run expensive word-start clustering if
         # any data row has more words than the header's gap columns.
         data_word_clusters: list[int] = []
         word_cols = gap_cols
-        for line in data_lines:
-            wc = len(line.split())
-            if wc > word_cols:
-                word_cols = wc
-            if word_cols > gap_cols:
-                data_word_clusters = _cluster_word_starts_by_rank(data_lines)
-                word_cols = len(data_word_clusters)
-                break
+        if not gap_aligned:
+            for line in data_lines:
+                wc = len(line.split())
+                if wc > word_cols:
+                    word_cols = wc
+                if word_cols > gap_cols:
+                    data_word_clusters = _cluster_word_starts_by_rank(data_lines)
+                    word_cols = len(data_word_clusters)
+                    break
 
         # Decide whether to expand the header beyond the 2+-space-gap
         # boundaries.  Three strategies, tried in priority order:
@@ -357,6 +365,34 @@ def _find_content_starts(line: str) -> list[int]:
         else:
             i += 1
     return starts
+
+
+def _rows_align_with_header_gaps(data_lines: list[str], header_starts: list[int]) -> bool:
+    """Check whether data rows' content starts sit on the header's gap positions.
+
+    A row "aligns" when every 2+-space content start in the row falls on
+    (or within a couple of characters of) one of the header's gap starts.
+    Rows with empty cells produce fewer content starts, which still counts
+    as aligning; rows with no content starts at all do not (they cannot
+    confirm the alignment).
+
+    When a majority of rows align, the header gaps already describe the
+    columns completely — even though rows may contain multi-word cells
+    (e.g. ``flatpak list``).  Callers must then not expand columns via
+    word clusters, which would split those cells into phantom columns.
+    """
+    if not header_starts or not data_lines:
+        return False
+    checked = 0
+    aligned = 0
+    for line in data_lines:
+        if not line.strip():
+            continue
+        checked += 1
+        hints = _find_content_starts(line)
+        if hints and all(any(abs(h - s) <= 2 for s in header_starts) for h in hints):
+            aligned += 1
+    return checked > 0 and aligned * 2 > checked
 
 
 def _find_word_starts(line: str) -> list[int]:
@@ -626,8 +662,62 @@ def _is_aligned(line: str, boundaries: list[int]) -> bool:
     return True
 
 
+def _is_tab_separated(lines: list[str]) -> bool:
+    """Return True if the input looks unambiguously tab-separated.
+
+    Requires at least two non-blank lines whose tab counts are all equal
+    and at least two (i.e. three or more columns).  Single-tab lines are
+    too often key/value text rather than table rows, so they stay on the
+    space-aligned path.
+
+    This is the shape of e.g. ``flatpak list`` when piped to a non-TTY:
+    it switches to tab separation and suppresses its header row.
+    """
+    tab_counts = [line.count("\t") for line in lines if line.strip()]
+    if len(tab_counts) < 2:
+        return False
+    modal, freq = Counter(tab_counts).most_common(1)[0]
+    return modal >= 2 and freq == len(tab_counts)
+
+
+def _parse_tab_separated(lines: list[str], has_header: bool = True) -> Table:
+    """Parse tab-separated lines into a Table.
+
+    Tabs are unambiguous field separators, so cells keep their internal
+    spaces (``Extension Manager``) and empty cells (flatpak runtimes
+    without a Version) are preserved.  Ragged rows are truncated or
+    padded to the header width.
+    """
+    raw = [line.rstrip("\n\r") for line in lines if line.strip()]
+    if not raw:
+        return Table([], [])
+
+    split_rows = [[cell.strip() for cell in line.split("\t")] for line in raw]
+    if has_header:
+        header = split_rows[0]
+        data = split_rows[1:]
+    else:
+        header = [f"col{i + 1}" for i in range(len(split_rows[0]))]
+        data = split_rows
+
+    ncols = len(header)
+    normalized = []
+    for row in data:
+        if len(row) < ncols:
+            row = row + [""] * (ncols - len(row))
+        elif len(row) > ncols:
+            row = row[:ncols]
+        normalized.append(row)
+    return Table(header, normalized)
+
+
 def parse(lines: list[str], has_header: bool = True) -> Table:
-    """Parse space-aligned or Unicode outline input into a Table."""
+    """Parse space-aligned, tab-separated, or Unicode outline input into a Table."""
+    # Tab-separated input (e.g. `flatpak list` piped) is unambiguous;
+    # check it before the space-aligned heuristics.
+    if _is_tab_separated(lines):
+        return _parse_tab_separated(lines, has_header)
+
     # Try Unicode box-drawing (outline) table first
     if _detect_outline_table(lines, has_header):
         return _parse_outline_table(lines, has_header)
